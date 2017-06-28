@@ -11,20 +11,18 @@ class Model:
         self.batch_size = batch_size
         self.hidden_size = hidden_size
         self.n_layer = n_rnn_layer
-
-        # network
         self.net = tf.make_template('net', self._net)
 
-    def __call__(self, input_seq):
-        return self.net(input_seq)
+    def __call__(self, x_mixed):
+        return self.net(x_mixed)
 
-    def _net(self, input_seq):
-        self.input_seq = input_seq
-        self.rnn_layer = MultiRNNCell([GRUCell(self.hidden_size, self.input_size) for _ in range(self.n_layer)])
-        output_rnn, rnn_state = tf.nn.dynamic_rnn(self.rnn_layer, self.input_seq, dtype=tf.float32)
-        self.y_hat_src1 = tf.layers.dense(inputs=output_rnn, units=self.input_size, activation=tf.nn.relu, name='y_hat_src1')
-        self.y_hat_src2 = tf.layers.dense(inputs=output_rnn, units=self.input_size, activation=tf.nn.relu, name='y_hat_src2')
-        return self.y_hat_src1, self.y_hat_src2
+    def _net(self, x_mixed):
+        rnn_layer = MultiRNNCell([GRUCell(self.hidden_size) for _ in range(self.n_layer)])
+        output_rnn, rnn_state = tf.nn.dynamic_rnn(rnn_layer, x_mixed, dtype=tf.float32)
+        y_hat_src1 = tf.layers.dense(inputs=output_rnn, units=self.input_size, activation=tf.nn.relu, name='y_hat_src1')
+        y_hat_src2 = tf.layers.dense(inputs=output_rnn, units=self.input_size, activation=tf.nn.relu, name='y_hat_src2')
+        return y_hat_src1, y_hat_src2
 
-    def loss(self, y_src1, y_src2):
-        return tf.reduce_mean(tf.square(y_src1 - self.y_hat_src1) + tf.square(y_src2 - self.y_hat_src2), name='loss')
+    def loss(self, x_mixed, y_src1, y_src2):
+        y_hat_src1, y_hat_src2 = self.net(x_mixed)
+        return tf.reduce_mean(tf.square(y_src1 - y_hat_src1) + tf.square(y_src2 - y_hat_src2), name='loss')

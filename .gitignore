@@ -2,3 +2,5 @@
 dataset
 .idea
 *.pyc
+checkpoints
+graphs

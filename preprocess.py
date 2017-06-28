@@ -1,89 +1,37 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-import matplotlib.pyplot as plt
 import librosa.display
 import numpy as np
 
-filename = 'dataset/ikala/Wavfile/21045_verse.wav'
 sr = 16000
-n_frame = 1024
-n_hop = n_frame / 4
-
-########################################################################################################################
-# Wav to STFT
-########################################################################################################################
-
-# Read 2-channel wav files
-data, sr = librosa.load(filename, sr=sr, mono=False)
-
-# Split wav into music and vocal parts
-music_wav, vocal_wav = data
-mix_wav = librosa.to_mono(data)
-
-# Write each wav
-librosa.output.write_wav('music.wav', music_wav, sr)
-librosa.output.write_wav('vocal.wav', vocal_wav, sr)
-librosa.output.write_wav('mix.wav', mix_wav, sr)
-
-# Transform to spectogram
-D_music = librosa.stft(music_wav, n_fft=n_frame, hop_length=n_hop)
-D_vocal = librosa.stft(vocal_wav, n_fft=n_frame, hop_length=n_hop)
-D_mix = librosa.stft(mix_wav, n_fft=n_frame, hop_length=n_hop)
-
-# Amplitude and phase
-amplitude_music, phase_music = np.abs(D_music), np.angle(D_music)
-
-########################################################################################################################
-# STFT to wav
-########################################################################################################################
-
-# Transform back to wav
-music_wav_recon = librosa.istft(D_music, hop_length=n_hop)
-vocal_wav_recon = librosa.istft(D_vocal, hop_length=n_hop)
-mix_wav_recon = librosa.istft(D_mix, hop_length=n_hop)
-
-# Write each reconstructed wav
-librosa.output.write_wav('music_recon.wav', music_wav_recon, sr)
-librosa.output.write_wav('vocal_recon.wav', vocal_wav_recon, sr)
-librosa.output.write_wav('mix_recon.wav', mix_wav_recon, sr)
+len_frame = 4096
+len_hop = len_frame
 
 
-########################################################################################################################
-# Display
-########################################################################################################################
+def get_mixed_wav(filenames, sr=sr):
+    return np.array(map(lambda f: librosa.load(f, sr=sr, mono=True)[0], filenames))
 
-# Plot waveforms
-plt.figure(1)
-plt.subplot(3, 1, 1)
-librosa.display.waveplot(mix_wav, sr=sr, color='r')
-plt.title('mix')
 
-plt.subplot(3, 1, 2)
-librosa.display.waveplot(music_wav, sr=sr)
-plt.title('music')
+def get_src1_src2_wav(filenames, sr=sr):
+    return np.array(map(lambda f: librosa.load(f, sr=sr, mono=False)[0], filenames))
 
-plt.subplot(3, 1, 3)
-librosa.display.waveplot(vocal_wav, sr=sr)
-plt.title('vocal')
-plt.tight_layout()
 
-# Plot spectogram
-plt.figure(2)
-plt.subplot(3, 1, 1)
-librosa.display.specshow(librosa.amplitude_to_db(D_music, ref=np.max), sr=sr, hop_length=n_hop, y_axis='log', x_axis='time')
-plt.title('music spectrogram')
-plt.colorbar(format='%+2.0f dB')
+def to_spectogram(wav, len_frame=len_frame, len_hop=len_hop):
+    return np.array(map(lambda w: librosa.stft(w, n_fft=len_frame, hop_length=len_hop), wav))
 
-plt.subplot(3, 1, 2)
-librosa.display.specshow(librosa.amplitude_to_db(D_vocal, ref=np.max), sr=sr, hop_length=n_hop, y_axis='log', x_axis='time')
-plt.title('vocal spectrogram')
-plt.colorbar(format='%+2.0f dB')
-plt.tight_layout()
 
-plt.subplot(3, 1, 3)
-librosa.display.specshow(librosa.amplitude_to_db(D_mix, ref=np.max), sr=sr, hop_length=n_hop, y_axis='log', x_axis='time')
-plt.title('mix spectrogram')
-plt.colorbar(format='%+2.0f dB')
+def to_wav(stft_maxrix, len_hop=len_hop):
+    return np.array(map(lambda s: librosa.istft(s, hop_length=len_hop), stft_maxrix))
 
-# plt.show()
+
+def write(wav, filename, sr=sr):
+    librosa.output.write_wav(filename, wav, sr)
+
+
+def get_amplitude(stft_matrix):
+    return np.abs(stft_matrix)
+
+
+def get_phase(stft_maxtrix):
+    return np.angle(stft_maxtrix)
