@@ -12,3 +12,8 @@ class Diff(object):
             diff = (v / self.value - 1)
             self.diff = diff
         self.value = v
+
+
+def shape(tensor):
+    s = tensor.get_shape()
+    return tuple([s[i].value for i in range(0, len(s))])

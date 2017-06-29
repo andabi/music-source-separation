@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-import matplotlib.pyplot as plt
+# import matplotlib.pyplot as plt
 import librosa.display
 import numpy as np
 
@@ -54,36 +54,36 @@ librosa.output.write_wav('mix_recon.wav', mix_wav_recon, sr)
 ########################################################################################################################
 
 # Plot waveforms
-plt.figure(1)
-plt.subplot(3, 1, 1)
-librosa.display.waveplot(mix_wav, sr=sr, color='r')
-plt.title('mix')
-
-plt.subplot(3, 1, 2)
-librosa.display.waveplot(music_wav, sr=sr)
-plt.title('music')
-
-plt.subplot(3, 1, 3)
-librosa.display.waveplot(vocal_wav, sr=sr)
-plt.title('vocal')
-plt.tight_layout()
-
-# Plot spectogram
-plt.figure(2)
-plt.subplot(3, 1, 1)
-librosa.display.specshow(librosa.amplitude_to_db(D_music, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')
-plt.title('music spectrogram')
-plt.colorbar(format='%+2.0f dB')
-
-plt.subplot(3, 1, 2)
-librosa.display.specshow(librosa.amplitude_to_db(D_vocal, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')
-plt.title('vocal spectrogram')
-plt.colorbar(format='%+2.0f dB')
-plt.tight_layout()
-
-plt.subplot(3, 1, 3)
-librosa.display.specshow(librosa.amplitude_to_db(D_mix, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')
-plt.title('mix spectrogram')
-plt.colorbar(format='%+2.0f dB')
+# plt.figure(1)
+# plt.subplot(3, 1, 1)
+# librosa.display.waveplot(mix_wav, sr=sr, color='r')
+# plt.title('mix')
+#
+# plt.subplot(3, 1, 2)
+# librosa.display.waveplot(music_wav, sr=sr)
+# plt.title('music')
+#
+# plt.subplot(3, 1, 3)
+# librosa.display.waveplot(vocal_wav, sr=sr)
+# plt.title('vocal')
+# plt.tight_layout()
+#
+# # Plot spectogram
+# plt.figure(2)
+# plt.subplot(3, 1, 1)
+# librosa.display.specshow(librosa.amplitude_to_db(D_music, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')
+# plt.title('music spectrogram')
+# plt.colorbar(format='%+2.0f dB')
+#
+# plt.subplot(3, 1, 2)
+# librosa.display.specshow(librosa.amplitude_to_db(D_vocal, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')
+# plt.title('vocal spectrogram')
+# plt.colorbar(format='%+2.0f dB')
+# plt.tight_layout()
+#
+# plt.subplot(3, 1, 3)
+# librosa.display.specshow(librosa.amplitude_to_db(D_mix, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')
+# plt.title('mix spectrogram')
+# plt.colorbar(format='%+2.0f dB')
 
 # plt.show()

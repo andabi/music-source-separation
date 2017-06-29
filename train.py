@@ -2,43 +2,51 @@
 # !/usr/bin/env python
 
 import tensorflow as tf
-from model import Model
+from model import Model, load_state
 import os
 import shutil
 from data import Data
 from preprocess import *
 from utils import Diff
-
-CASE = 'default'
-DATA_PATH = 'dataset/ikala'
-CKPT_PATH = 'checkpoints/' + CASE
-GRAPH_PATH = 'graphs/' + CASE
-RE_TRAIN = False
-INPUT_SIZE = 2049
-BATCH_SIZE = 2
-LR = 0.0001
-FINAL_STEP = 1000
-CKPT_STEP = 10
+from config import *
 
 
 def train():
-    net = Model(INPUT_SIZE)
-    input = Data(DATA_PATH)
-    x_mixed = tf.placeholder(tf.float32, shape=(BATCH_SIZE, None, INPUT_SIZE), name='x_mixed')
-    y_src1 = tf.placeholder(tf.float32, shape=(BATCH_SIZE, None, INPUT_SIZE), name='y_src1')
-    y_src2 = tf.placeholder(tf.float32, shape=(BATCH_SIZE, None, INPUT_SIZE), name='y_src2')
+    # Input, Output
+    x_mixed = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='x_mixed')
+    y_src1 = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='y_src1')
+    y_src2 = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='y_src2')
 
-    loss_op = net.loss(x_mixed, y_src1, y_src2)
+    # Model
+    net = Model(x_mixed)
+
+    # Loss, Optimizer
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
-    optimizer = tf.train.AdamOptimizer(learning_rate=LR).minimize(loss_op, global_step=global_step)
+    loss_fn = net.loss(y_src1, y_src2)
+    optimizer = tf.train.AdamOptimizer(learning_rate=LR).minimize(loss_fn, global_step=global_step)
+
+    # Summaries
+    for v in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+        tf.summary.histogram(v.name, v)
+        tf.summary.histogram('grad/' + v.name, tf.gradients(loss_fn, v))
+    tf.summary.scalar('loss', loss_fn)
+    tf.summary.histogram('x_mixed', x_mixed)
+    tf.summary.histogram('y_src1', y_src1)
+    tf.summary.histogram('y_src2', y_src1)
+    summary_op = tf.summary.merge_all()
 
     with tf.Session() as sess:
+
+        # Initialized, Load state
         sess.run(tf.global_variables_initializer())
         load_state(sess)
 
+        writer = tf.summary.FileWriter(GRAPH_PATH, sess.graph)
+
+        data = Data(TRAIN_DATA_PATH)
         loss = Diff()
         for step in range(global_step.eval(), FINAL_STEP):
-            wavfiles = input.next_batch(BATCH_SIZE)
+            wavfiles = data.next_batch(BATCH_SIZE)
 
             mixed_wav = get_mixed_wav(wavfiles)
             mixed_spec = to_spectogram(mixed_wav)
@@ -48,26 +56,20 @@ def train():
             src1_spec, src2_spec = to_spectogram(src1_wav), to_spectogram(src2_wav)
             src1, src2 = src1_spec.transpose(0, 2, 1), src2_spec.transpose(0, 2, 1)
 
-            l, _ = sess.run([loss_op, optimizer], feed_dict={x_mixed: mixed, y_src1: src1, y_src2: src2})
-            loss.update(l)
-            print('step-{}\td_loss={}\tloss={}'.format(step, loss.diff * 100, loss.value))
+            l, _, summary = sess.run([loss_fn, optimizer, summary_op], feed_dict={x_mixed: mixed, y_src1: src1, y_src2: src2})
 
-            # save state
+            loss.update(l)
+            print('step-{}\td_loss={:2.2f}\tloss={}'.format(step, loss.diff * 100, loss.value))
+
+            # Save state
             if step % CKPT_STEP == 0:
                 tf.train.Saver().save(sess, CKPT_PATH + '/checkpoint', global_step=step)
+                writer.add_summary(summary, global_step=step)
 
-        # Write graph
-        writer = tf.summary.FileWriter(GRAPH_PATH, sess.graph)
         writer.close()
 
 
-def load_state(sess):
-    ckpt = tf.train.get_checkpoint_state(os.path.dirname(CKPT_PATH + '/checkpoint'))
-    if ckpt and ckpt.model_checkpoint_path:
-        tf.train.Saver().restore(sess, ckpt.model_checkpoint_path)
-
-
-def clear_dir():
+def setup_path():
     if RE_TRAIN:
         if os.path.exists(CKPT_PATH):
             shutil.rmtree(CKPT_PATH)
@@ -80,5 +82,5 @@ def clear_dir():
 if __name__ == '__main__':
     # TODO multi-gpu
     # TODO queue
-    clear_dir()
+    setup_path()
     train()

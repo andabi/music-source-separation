@@ -9,11 +9,9 @@ class Data:
     def __init__(self, path):
         self.path = path
 
-    def next_batch(self, size=10):
+    def next_batch(self, size):
         wavfiles = []
         for (root, dirs, files) in walk(self.path):
             wavfiles.extend(['{}/{}'.format(root, f) for f in files if f.endswith(".wav")])
         wavfiles = random.sample(wavfiles, size)
         return wavfiles
-
-# train_data = Data('dataset/ikala')
