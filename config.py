@@ -7,17 +7,17 @@ CKPT_PATH = 'checkpoints/' + CASE
 GRAPH_PATH = 'graphs/' + CASE
 
 # Model
-BATCH_SIZE = 16
+BATCH_SIZE = 4
 SR = 16000
 L_FRAME = 4096
 L_HOP = L_FRAME / 2
 
 # Train
 TRAIN_DATA_PATH = 'dataset/ikala'
-LR = 0.005
+LR = 0.0005
 FINAL_STEP = 1000
 CKPT_STEP = 10
-RE_TRAIN = True
+RE_TRAIN = False
 
 # Eval
 EVAL_DATA_PATH = 'dataset/ikala'

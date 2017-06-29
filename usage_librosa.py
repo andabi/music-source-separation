@@ -2,7 +2,8 @@
 #!/usr/bin/env python
 
 # import matplotlib.pyplot as plt
-import librosa.display
+import librosa
+# import librosa.display
 import numpy as np
 
 filename = 'dataset/ikala/Wavfile/21045_verse.wav'
@@ -26,13 +27,16 @@ librosa.output.write_wav('music.wav', music_wav, sr)
 librosa.output.write_wav('vocal.wav', vocal_wav, sr)
 librosa.output.write_wav('mix.wav', mix_wav, sr)
 
-# Transform to spectogram
+# Transform to spectrogram
 D_music = librosa.stft(music_wav, n_fft=n_fft, hop_length=len_hop)
 D_vocal = librosa.stft(vocal_wav, n_fft=n_fft, hop_length=len_hop)
 D_mix = librosa.stft(mix_wav, n_fft=n_fft, hop_length=len_hop)
 
-# Amplitude and phase
-amplitude_music, phase_music = np.abs(D_music), np.angle(D_music)
+# magnitude and phase
+magnitude_music, phase_music = np.abs(D_music), np.angle(D_music)
+magnitude_vocal, phase_vocal = np.abs(D_vocal), np.angle(D_vocal)
+magnitude_mix, phase_mix = np.abs(D_mix), np.angle(D_mix)
+
 
 ########################################################################################################################
 # STFT to wav
@@ -68,7 +72,7 @@ librosa.output.write_wav('mix_recon.wav', mix_wav_recon, sr)
 # plt.title('vocal')
 # plt.tight_layout()
 #
-# # Plot spectogram
+# # Plot spectrogram
 # plt.figure(2)
 # plt.subplot(3, 1, 1)
 # librosa.display.specshow(librosa.amplitude_to_db(D_music, ref=np.max), sr=sr, hop_length=len_hop, y_axis='log', x_axis='time')

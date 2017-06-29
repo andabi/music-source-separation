@@ -18,7 +18,7 @@ def get_src1_src2_wav(filenames, sr=SR):
 
 
 # Batch considered
-def to_spectogram(wav, len_frame=L_FRAME, len_hop=L_HOP):
+def to_spectrogram(wav, len_frame=L_FRAME, len_hop=L_HOP):
     return np.array(map(lambda w: librosa.stft(w, n_fft=len_frame, hop_length=len_hop), wav))
 
 
@@ -33,9 +33,16 @@ def write_wav(wav, filenames, sr=SR):
     map(lambda p: librosa.output.write_wav(p[1], p[0], sr), pair)
 
 
-def get_amplitude(stft_matrix):
-    return np.abs(stft_matrix)
+# Batch considered
+def get_magnitude(stft_matrixes):
+    return np.abs(stft_matrixes)
 
 
-def get_phase(stft_maxtrix):
-    return np.angle(stft_maxtrix)
+# Batch considered
+def get_phase(stft_maxtrixes):
+    return np.angle(stft_maxtrixes)
+
+
+# Batch considered
+def get_stft_matrix(magnitudes, phases):
+    return magnitudes * np.exp(1j * phases)
