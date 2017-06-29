@@ -10,11 +10,8 @@ from config import *
 
 
 def eval():
-    # Input
-    x_mixed = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='x_mixed')
-
     # Model
-    net = Model(x_mixed)
+    model = Model()
 
     with tf.Session() as sess:
 
@@ -32,15 +29,17 @@ def eval():
         mixed_spec = to_spectogram(mixed_wav)
         mixed = mixed_spec.transpose(0, 2, 1)
 
-        pred = sess.run(net(), feed_dict={x_mixed: mixed})
+        pred = sess.run(model(), feed_dict={model.x_mixed: mixed})
 
         pred_src1, pred_src2 = pred
         pred_src1, pred_src2 = pred_src1.transpose(0, 2, 1), pred_src2.transpose(0, 2, 1)
         pred_src1_wav, pred_src2_wav = to_wav(pred_src1), to_wav(pred_src2)
         # TODO refactoring
-        write_wav(mixed_wav, map(lambda f: '{}/{}'.format(EVAL_RESULT_PATH, f.replace('/', '-')), wavfiles))
-        write_wav(pred_src1_wav, map(lambda f: '{}/src1-{}'.format(EVAL_RESULT_PATH, f.replace('/', '-')), wavfiles))
-        write_wav(pred_src2_wav,  map(lambda f: '{}/src2-{}'.format(EVAL_RESULT_PATH, f.replace('/', '-')), wavfiles))
+        tf.summary.audio('mixed', mixed_wav, SR)
+        tf.summary.audio('pred_src1', pred_src1_wav, SR)
+        tf.summary.audio('pred_src2', pred_src2_wav, SR)
+        tf.summary.audio('pred_mixed', pred_src1_wav + pred_src2_wav, SR)
+        writer.add_summary(sess.run(tf.summary.merge_all()))
 
         writer.close()
 

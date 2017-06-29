@@ -12,17 +12,12 @@ from config import *
 
 
 def train():
-    # Input, Output
-    x_mixed = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='x_mixed')
-    y_src1 = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='y_src1')
-    y_src2 = tf.placeholder(tf.float32, shape=(None, None, INPUT_SIZE), name='y_src2')
-
     # Model
-    net = Model(x_mixed)
+    model = Model()
 
     # Loss, Optimizer
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
-    loss_fn = net.loss(y_src1, y_src2)
+    loss_fn = model.loss()
     optimizer = tf.train.AdamOptimizer(learning_rate=LR).minimize(loss_fn, global_step=global_step)
 
     # Summaries
@@ -30,9 +25,9 @@ def train():
         tf.summary.histogram(v.name, v)
         tf.summary.histogram('grad/' + v.name, tf.gradients(loss_fn, v))
     tf.summary.scalar('loss', loss_fn)
-    tf.summary.histogram('x_mixed', x_mixed)
-    tf.summary.histogram('y_src1', y_src1)
-    tf.summary.histogram('y_src2', y_src1)
+    tf.summary.histogram('x_mixed', model.x_mixed)
+    tf.summary.histogram('y_src1', model.y_src1)
+    tf.summary.histogram('y_src2', model.y_src1)
     summary_op = tf.summary.merge_all()
 
     with tf.Session() as sess:
@@ -56,7 +51,8 @@ def train():
             src1_spec, src2_spec = to_spectogram(src1_wav), to_spectogram(src2_wav)
             src1, src2 = src1_spec.transpose(0, 2, 1), src2_spec.transpose(0, 2, 1)
 
-            l, _, summary = sess.run([loss_fn, optimizer, summary_op], feed_dict={x_mixed: mixed, y_src1: src1, y_src2: src2})
+            l, _, summary = sess.run([loss_fn, optimizer, summary_op],
+                                     feed_dict={model.x_mixed: mixed, model.y_src1: src1, model.y_src2: src2})
 
             loss.update(l)
             print('step-{}\td_loss={:2.2f}\tloss={}'.format(step, loss.diff * 100, loss.value))

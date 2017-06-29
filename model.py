@@ -9,8 +9,14 @@ from utils import shape
 
 
 class Model:
-    def __init__(self, x_mixed, n_rnn_layer=3, hidden_size=256):
-        self.x_mixed = x_mixed
+    def __init__(self, n_rnn_layer=3, hidden_size=256):
+
+        # Input, Output
+        self.x_mixed = tf.placeholder(tf.float32, shape=(None, None, L_FRAME / 2 + 1), name='x_mixed')
+        self.y_src1 = tf.placeholder(tf.float32, shape=(None, None, L_FRAME / 2 + 1), name='y_src1')
+        self.y_src2 = tf.placeholder(tf.float32, shape=(None, None, L_FRAME / 2 + 1), name='y_src2')
+
+        # Network
         self.hidden_size = hidden_size
         self.n_layer = n_rnn_layer
         self.net = tf.make_template('net', self._net)
@@ -27,9 +33,9 @@ class Model:
         y_hat_src2 = tf.layers.dense(inputs=output_rnn, units=input_size, activation=tf.nn.relu, name='y_hat_src2')
         return y_hat_src1, y_hat_src2
 
-    def loss(self, y_src1, y_src2):
-        y_hat_src1, y_hat_src2 = self.net()
-        return tf.reduce_mean(tf.square(y_src1 - y_hat_src1) + tf.square(y_src2 - y_hat_src2), name='loss')
+    def loss(self):
+        y_hat_src1, y_hat_src2 = self()
+        return tf.reduce_mean(tf.square(self.y_src1 - y_hat_src1) + tf.square(self.y_src2 - y_hat_src2), name='loss')
 
 
 def load_state(sess):
