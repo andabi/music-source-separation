@@ -46,3 +46,13 @@ def get_phase(stft_maxtrixes):
 # Batch considered
 def get_stft_matrix(magnitudes, phases):
     return magnitudes * np.exp(1j * phases)
+
+
+# Batch considered
+def time_freq_mask(target_src, remaining_src):
+    # shape = (B, T, F)
+    with np.errstate(divide='ignore'):
+        denominator = (np.abs(target_src) + np.abs(remaining_src))
+        denominator[denominator == 0] = float('inf')
+        mask = np.abs(target_src) / denominator
+    return mask

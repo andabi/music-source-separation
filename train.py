@@ -59,10 +59,11 @@ def train():
             loss.update(l)
             print('step-{}\td_loss={:2.2f}\tloss={}'.format(step, loss.diff * 100, loss.value))
 
+            writer.add_summary(summary, global_step=step)
+
             # Save state
             if step % CKPT_STEP == 0:
                 tf.train.Saver().save(sess, CKPT_PATH + '/checkpoint', global_step=step)
-                writer.add_summary(summary, global_step=step)
 
         writer.close()
 

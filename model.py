@@ -35,7 +35,8 @@ class Model:
 
     def loss(self):
         y_hat_src1, y_hat_src2 = self()
-        return tf.reduce_mean(tf.square(self.y_src1 - y_hat_src1) + tf.square(self.y_src2 - y_hat_src2), name='loss')
+        return tf.reduce_mean(tf.square(self.y_src1 - y_hat_src1) + tf.square(self.y_src2 - y_hat_src2) -
+                              tf.square(self.y_src1 - y_hat_src2) - tf.square(self.y_src2 - y_hat_src1), name='loss')
 
 
 def load_state(sess):
