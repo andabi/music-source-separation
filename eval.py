@@ -7,7 +7,7 @@ import os
 from data import Data
 from preprocess import *
 from config import *
-
+from mir_eval.separation import bss_eval_sources
 
 def eval():
     # Model
@@ -62,14 +62,31 @@ def eval():
         # TODO refactoring
         tf.summary.audio('mixed', mixed_wav, SR)
         tf.summary.audio('pred_music', pred_src1_wav, SR)
-        tf.summary.audio('pred_voice', pred_src2_wav, SR)
+        tf.summary.audio('pred_music_smoothed', smoothed_pred_src1_wav, SR)
+        tf.summary.audio('pred_vocal', pred_src2_wav, SR)
+        tf.summary.audio('pred_vocal_smoothed', smoothed_pred_src2_wav, SR)
         tf.summary.audio('pred_mixed', pred_src1_wav + pred_src2_wav, SR)
-        tf.summary.audio('pred_smoothed_music', smoothed_pred_src1_wav, SR)
-        tf.summary.audio('pred_smoothed_voice', smoothed_pred_src2_wav, SR)
-        tf.summary.audio('pred_smoothed_mixed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, SR)
+        tf.summary.audio('pred_mixed_smoothed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, SR)
         # tf.summary.audio('reverse_mixed', np.flip(mixed_wav, -1), SR)
         # tf.summary.audio('reverse_src1', np.flip(src1_wav, -1), SR)
         # tf.summary.audio('reverse_src2', np.flip(src2_wav, -1), SR)
+
+        # TODO refactoring
+        # BSS metrics
+        crop_len_src1 = min(smoothed_pred_src1_wav.shape[-1], src1_wav.shape[-1])
+        crop_len_src2 = min(smoothed_pred_src2_wav.shape[-1], src2_wav.shape[-1])
+        smoothed_pred_src1_wav = smoothed_pred_src1_wav[0][:crop_len_src1]
+        src1_wav = src1_wav[0][:crop_len_src1]
+        smoothed_pred_src2_wav = smoothed_pred_src2_wav[0][:crop_len_src2]
+        src2_wav = src2_wav[0][:crop_len_src2]
+        sdr, sir, sar, _ = bss_eval_sources(np.array([smoothed_pred_src1_wav, smoothed_pred_src2_wav]),
+                                            np.array([src1_wav, src2_wav]))
+        tf.summary.scalar('sdr_music', sdr[0])
+        tf.summary.scalar('sir_music', sir[0])
+        tf.summary.scalar('sar_music', sar[0])
+        tf.summary.scalar('sdr_vocal', sdr[1])
+        tf.summary.scalar('sir_vocal', sir[1])
+        tf.summary.scalar('sar_vocal', sar[1])
 
         writer.add_summary(sess.run(tf.summary.merge_all()))
 
