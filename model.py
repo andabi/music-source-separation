@@ -6,6 +6,7 @@ from tensorflow.contrib.rnn import GRUCell, MultiRNNCell
 from config import *
 import os
 from utils import shape
+import numpy as np
 
 
 class Model:
@@ -35,8 +36,27 @@ class Model:
 
     def loss(self):
         y_hat_src1, y_hat_src2 = self()
-        return tf.reduce_mean(tf.square(self.y_src1 - y_hat_src1) + tf.square(self.y_src2 - y_hat_src2) -
-                              tf.square(self.y_src1 - y_hat_src2) - tf.square(self.y_src2 - y_hat_src1), name='loss')
+        return tf.reduce_mean(tf.square(self.y_src1 - y_hat_src1) + tf.square(self.y_src2 - y_hat_src2), name='loss')
+
+    # TODO batch padding (don't crop tail)
+    def seq_to_batch(self, src):
+        src = src.transpose(0, 2, 1)
+        num_wavs, n_frame, freq = src.shape
+        seq_len = num_wavs * n_frame / BATCH_SIZE + 1
+
+        # crop tail frames which is smaller than seq_len
+        n_frame -= (n_frame % seq_len)
+        src = src[:, :n_frame]
+
+        src = np.array(np.hsplit(src, n_frame / seq_len))
+        src = np.reshape(src, (-1, seq_len, freq))
+        return src
+
+    def batch_to_seq(self, pred_src, num_file):
+        batch_size, n_frame, freq = pred_src.shape
+        pred_src = np.reshape(pred_src, (num_file, -1, freq))
+        pred_src = pred_src.transpose(0, 2, 1)
+        return pred_src
 
 
 def load_state(sess):

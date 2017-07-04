@@ -2,19 +2,19 @@
 #!/usr/bin/env python
 
 # Write
-CASE = 'enhanced_loss'
+CASE = '4-frames'
 CKPT_PATH = 'checkpoints/' + CASE
 GRAPH_PATH = 'graphs/' + CASE
 
 # Model
-BATCH_SIZE = 8
+BATCH_SIZE = 64
 SR = 16000
-L_FRAME = 4096
-L_HOP = L_FRAME / 2
+L_FRAME = 1024
+L_HOP = L_FRAME / 4
 
 # Train
 TRAIN_DATA_PATH = 'dataset/ikala'
-LR = 0.0001
+LR = 0.0005
 FINAL_STEP = 10000
 CKPT_STEP = 100
 RE_TRAIN = False

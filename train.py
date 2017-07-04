@@ -41,17 +41,16 @@ def train():
         data = Data(TRAIN_DATA_PATH)
         loss = Diff()
         for step in range(global_step.eval(), FINAL_STEP):
-            wavfiles = data.next_batch(BATCH_SIZE)
+            mixed_wav, src1_wav, src2_wav = data.next_wavs(1)
 
-            mixed_wav = get_mixed_wav(wavfiles)
             mixed_spec = to_spectrogram(mixed_wav)
             mixed_mag = get_magnitude(mixed_spec)
-            mixed = mixed_mag.transpose(0, 2, 1)
 
-            src1_wav, src2_wav = get_src1_src2_wav(wavfiles)
             src1_spec, src2_spec = to_spectrogram(src1_wav), to_spectrogram(src2_wav)
             src1_mag, src2_mag = get_magnitude(src1_spec), get_magnitude(src2_spec)
-            src1, src2 = src1_mag.transpose(0, 2, 1), src2_mag.transpose(0, 2, 1)
+
+            src1, src2 = model.seq_to_batch(src1_mag), model.seq_to_batch(src2_mag)
+            mixed = model.seq_to_batch(mixed_mag)
 
             l, _, summary = sess.run([loss_fn, optimizer, summary_op],
                                      feed_dict={model.x_mixed: mixed, model.y_src1: src1, model.y_src2: src2})
