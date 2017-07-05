@@ -1,25 +1,41 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
 
-# Write
-CASE = '4-frames'
-CKPT_PATH = 'checkpoints/' + CASE
-GRAPH_PATH = 'graphs/' + CASE
+import tensorflow as tf
+
 
 # Model
-BATCH_SIZE = 64
-SR = 16000
-L_FRAME = 1024
-L_HOP = L_FRAME / 4
+class ModelConfig:
+    BATCH_SIZE = 64
+    SR = 16000
+    L_FRAME = 1024
+    L_HOP = L_FRAME / 4
+
 
 # Train
-TRAIN_DATA_PATH = 'dataset/ikala'
-LR = 0.0005
-FINAL_STEP = 10000
-CKPT_STEP = 100
-RE_TRAIN = False
+class TrainConfig:
+    CASE = '4-frames-masking-layer'
+    CKPT_PATH = 'checkpoints/' + CASE
+    GRAPH_PATH = 'graphs/' + CASE + '/train'
+    DATA_PATH = 'dataset/ikala'
+    LR = 0.0005
+    FINAL_STEP = 10000
+    CKPT_STEP = 100
+    RE_TRAIN = False
+    session_conf = tf.ConfigProto(
+        device_count={'CPU': 1, 'GPU': 1},
+    )
+
 
 # Eval
-EVAL_DATA_PATH = 'dataset/MIR-1K/Wavfile'
-EVAL_RESULT_PATH = 'results/' + CASE
-NUM_EVAL = 1
+class EvalConfig:
+    CASE = '4-frames'
+    CKPT_PATH = 'checkpoints/' + CASE
+    GRAPH_PATH = 'graphs/' + CASE + '/eval'
+    DATA_PATH = 'dataset/kpop'
+    RESULT_PATH = 'results/' + CASE
+    NUM_EVAL = 1
+    session_conf = tf.ConfigProto(
+        device_count={'CPU': 1, 'GPU': 1},
+        gpu_options=tf.GPUOptions(allow_growth=True)
+    )

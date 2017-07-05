@@ -3,32 +3,32 @@
 
 import librosa
 import numpy as np
-from config import *
+from config import ModelConfig
 
 
 # Batch considered
-def get_mixed_wav(filenames, sr=SR):
+def get_mixed_wav(filenames, sr=ModelConfig.SR):
     return np.array(map(lambda f: librosa.load(f, sr=sr, mono=True)[0], filenames))
 
 
 # Batch considered
-def get_src1_src2_wav(filenames, sr=SR):
+def get_src1_src2_wav(filenames, sr=ModelConfig.SR):
     wav = np.array(map(lambda f: librosa.load(f, sr=sr, mono=False)[0], filenames))
     return wav[:, 0], wav[:, 1]
 
 
 # Batch considered
-def to_spectrogram(wav, len_frame=L_FRAME, len_hop=L_HOP):
+def to_spectrogram(wav, len_frame=ModelConfig.L_FRAME, len_hop=ModelConfig.L_HOP):
     return np.array(map(lambda w: librosa.stft(w, n_fft=len_frame, hop_length=len_hop), wav))
 
 
 # Batch considered
-def to_wav(stft_maxrix, len_hop=L_HOP):
+def to_wav(stft_maxrix, len_hop=ModelConfig.L_HOP):
     return np.array(map(lambda s: librosa.istft(s, hop_length=len_hop), stft_maxrix))
 
 
 # Batch considered
-def write_wav(wav, filenames, sr=SR):
+def write_wav(wav, filenames, sr=ModelConfig.SR):
     pair = zip(wav, filenames)
     map(lambda p: librosa.output.write_wav(p[1], p[0], sr), pair)
 
@@ -50,9 +50,5 @@ def get_stft_matrix(magnitudes, phases):
 
 # Batch considered
 def time_freq_mask(target_src, remaining_src):
-    # shape = (B, T, F)
-    with np.errstate(divide='ignore'):
-        denominator = (np.abs(target_src) + np.abs(remaining_src))
-        denominator[denominator == 0] = float('inf')
-        mask = np.abs(target_src) / denominator
+    mask = np.abs(target_src) / (np.abs(target_src) + np.abs(remaining_src) + np.finfo(float).eps)
     return mask

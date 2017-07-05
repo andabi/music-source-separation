@@ -6,7 +6,7 @@ from model import Model, load_state
 import os
 from data import Data
 from preprocess import *
-from config import *
+from config import EvalConfig
 from mir_eval.separation import bss_eval_sources
 
 
@@ -15,15 +15,15 @@ def eval():
     model = Model()
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
 
-    with tf.Session() as sess:
+    with tf.Session(config=EvalConfig.session_conf) as sess:
         # Initialized, Load state
         sess.run(tf.global_variables_initializer())
-        load_state(sess)
+        load_state(sess, EvalConfig.CKPT_PATH + '/checkpoint')
 
-        writer = tf.summary.FileWriter(GRAPH_PATH, sess.graph)
+        writer = tf.summary.FileWriter(EvalConfig.GRAPH_PATH, sess.graph)
 
-        data = Data(EVAL_DATA_PATH)
-        mixed_wav, src1_wav, src2_wav = data.next_wavs(NUM_EVAL)
+        data = Data(EvalConfig.DATA_PATH)
+        mixed_wav, src1_wav, src2_wav = data.next_wavs(EvalConfig.NUM_EVAL)
 
         # TODO refactoring
         mixed_spec = to_spectrogram(mixed_wav)
@@ -40,8 +40,8 @@ def eval():
 
         # (magnitude, phase) -> spectrogram -> wav
         pred_src1_mag, pred_src2_mag = pred
-        pred_src1_mag = model.batch_to_seq(pred_src1_mag, NUM_EVAL)
-        pred_src2_mag = model.batch_to_seq(pred_src2_mag, NUM_EVAL)
+        pred_src1_mag = model.batch_to_seq(pred_src1_mag, EvalConfig.NUM_EVAL)
+        pred_src2_mag = model.batch_to_seq(pred_src2_mag, EvalConfig.NUM_EVAL)
         mixed_phase = mixed_phase[:, :, :pred_src1_mag.shape[-1]]
         pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)
         pred_src2_spec = get_stft_matrix(pred_src2_mag, mixed_phase)
@@ -60,18 +60,18 @@ def eval():
         # print(np.max((mixed_wav[:,:60000] - pred_src2_wav[:,:60000] - pred_src1_wav[:,:60000])))
 
         # TODO refactoring
-        tf.summary.audio('0. gt_mixed', mixed_wav, SR)
-        tf.summary.audio('1. gt_music', src1_wav, SR)
-        tf.summary.audio('2. gt_vocal', src2_wav, SR)
-        # tf.summary.audio('mixed', pred_src1_wav + pred_src2_wav, SR)
-        tf.summary.audio('0. mixed_smoothed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, SR)
-        # tf.summary.audio('music', pred_src1_wav, SR)
-        tf.summary.audio('1. music_smoothed', smoothed_pred_src1_wav, SR)
-        # tf.summary.audio('vocal', pred_src2_wav, SR)
-        tf.summary.audio('2. vocal_smoothed', smoothed_pred_src2_wav, SR)
-        # tf.summary.audio('reverse_mixed', np.flip(mixed_wav, -1), SR)
-        # tf.summary.audio('reverse_src1', np.flip(src1_wav, -1), SR)
-        # tf.summary.audio('reverse_src2', np.flip(src2_wav, -1), SR)
+        tf.summary.audio('GT_mixed', mixed_wav, ModelConfig.SR)
+        tf.summary.audio('GT_music', src1_wav, ModelConfig.SR)
+        tf.summary.audio('GT_vocal', src2_wav, ModelConfig.SR)
+        tf.summary.audio('P_mixed', pred_src1_wav + pred_src2_wav, ModelConfig.SR)
+        tf.summary.audio('P_mixed_smoothed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, ModelConfig.SR)
+        tf.summary.audio('P_music', pred_src1_wav, ModelConfig.SR)
+        tf.summary.audio('P_music_smoothed', smoothed_pred_src1_wav, ModelConfig.SR)
+        tf.summary.audio('P_vocal', pred_src2_wav, ModelConfig.SR)
+        tf.summary.audio('P_vocal_smoothed', smoothed_pred_src2_wav, ModelConfig.SR)
+        # tf.summary.audio('reverse_mixed', np.flip(mixed_wav, -1), ModelConfig.SR)
+        # tf.summary.audio('reverse_src1', np.flip(src1_wav, -1), ModelConfig.SR)
+        # tf.summary.audio('reverse_src2', np.flip(src2_wav, -1), ModelConfig.SR)
 
         # TODO refactoring
         # BSS metrics
@@ -96,8 +96,8 @@ def eval():
 
 
 def setup_path():
-    if not os.path.exists(EVAL_RESULT_PATH):
-        os.makedirs(EVAL_RESULT_PATH)
+    if not os.path.exists(EvalConfig.RESULT_PATH):
+        os.makedirs(EvalConfig.RESULT_PATH)
 
 
 if __name__ == '__main__':

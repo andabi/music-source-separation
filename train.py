@@ -8,7 +8,7 @@ import shutil
 from data import Data
 from preprocess import *
 from utils import Diff
-from config import *
+from config import TrainConfig
 
 
 def train():
@@ -18,7 +18,7 @@ def train():
     # Loss, Optimizer
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
     loss_fn = model.loss()
-    optimizer = tf.train.AdamOptimizer(learning_rate=LR).minimize(loss_fn, global_step=global_step)
+    optimizer = tf.train.AdamOptimizer(learning_rate=TrainConfig.LR).minimize(loss_fn, global_step=global_step)
 
     # Summaries
     for v in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
@@ -30,17 +30,17 @@ def train():
     tf.summary.histogram('y_src2', model.y_src1)
     summary_op = tf.summary.merge_all()
 
-    with tf.Session() as sess:
+    with tf.Session(config=TrainConfig.session_conf) as sess:
 
         # Initialized, Load state
         sess.run(tf.global_variables_initializer())
-        load_state(sess)
+        load_state(sess, TrainConfig.CKPT_PATH)
 
-        writer = tf.summary.FileWriter(GRAPH_PATH, sess.graph)
+        writer = tf.summary.FileWriter(TrainConfig.GRAPH_PATH, sess.graph)
 
-        data = Data(TRAIN_DATA_PATH)
+        data = Data(TrainConfig.DATA_PATH)
         loss = Diff()
-        for step in range(global_step.eval(), FINAL_STEP):
+        for step in range(global_step.eval(), TrainConfig.FINAL_STEP):
             mixed_wav, src1_wav, src2_wav = data.next_wavs(1)
 
             mixed_spec = to_spectrogram(mixed_wav)
@@ -61,24 +61,26 @@ def train():
             writer.add_summary(summary, global_step=step)
 
             # Save state
-            if step % CKPT_STEP == 0:
-                tf.train.Saver().save(sess, CKPT_PATH + '/checkpoint', global_step=step)
+            if step % TrainConfig.CKPT_STEP == 0:
+                tf.train.Saver().save(sess, TrainConfig.CKPT_PATH + '/checkpoint', global_step=step)
 
         writer.close()
 
 
 def setup_path():
-    if RE_TRAIN:
-        if os.path.exists(CKPT_PATH):
-            shutil.rmtree(CKPT_PATH)
-        if os.path.exists(GRAPH_PATH):
-            shutil.rmtree(GRAPH_PATH)
-    if not os.path.exists(CKPT_PATH):
-        os.makedirs(CKPT_PATH)
+    if TrainConfig.RE_TRAIN:
+        if os.path.exists(TrainConfig.CKPT_PATH):
+            shutil.rmtree(TrainConfig.CKPT_PATH)
+        if os.path.exists(TrainConfig.GRAPH_PATH):
+            shutil.rmtree(TrainConfig.GRAPH_PATH)
+    if not os.path.exists(TrainConfig.CKPT_PATH):
+        os.makedirs(TrainConfig.CKPT_PATH)
 
 
 if __name__ == '__main__':
     # TODO multi-gpu
+    # (https://www.tensorflow.org/tutorials/deep_cnn#training_a_model_using_multiple_gpu_cards)
+    # (https://www.tensorflow.org/tutorials/using_gpu#allowing_gpu_memory_growth)
     # TODO queue
     setup_path()
     train()
