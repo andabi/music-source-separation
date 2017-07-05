@@ -18,8 +18,8 @@ class TrainConfig:
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/train'
     DATA_PATH = 'dataset/ikala'
-    LR = 0.0005
-    FINAL_STEP = 10000
+    LR = 0.0001
+    FINAL_STEP = 50000
     CKPT_STEP = 100
     RE_TRAIN = False
     session_conf = tf.ConfigProto(
@@ -30,6 +30,7 @@ class TrainConfig:
 # Eval
 class EvalConfig:
     CASE = '4-frames-masking-layer'
+    # CASE = '4-frames'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
     DATA_PATH = 'dataset/kpop'

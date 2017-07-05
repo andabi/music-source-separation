@@ -19,7 +19,7 @@ def eval():
     with tf.Session(config=EvalConfig.session_conf) as sess:
         # Initialized, Load state
         sess.run(tf.global_variables_initializer())
-        load_state(sess, EvalConfig.CKPT_PATH + '/checkpoint')
+        load_state(sess, EvalConfig.CKPT_PATH)
 
         writer = tf.summary.FileWriter(EvalConfig.GRAPH_PATH, sess.graph)
 

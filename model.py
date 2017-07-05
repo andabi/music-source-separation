@@ -69,6 +69,6 @@ class Model:
 
 
 def load_state(sess, ckpt_path):
-    ckpt = tf.train.get_checkpoint_state(os.path.dirname(ckpt_path))
+    ckpt = tf.train.get_checkpoint_state(os.path.dirname(ckpt_path + '/checkpoint'))
     if ckpt and ckpt.model_checkpoint_path:
         tf.train.Saver().restore(sess, ckpt.model_checkpoint_path)
