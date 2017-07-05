@@ -11,11 +11,11 @@ class Data:
     def __init__(self, path):
         self.path = path
 
-    def next_wavs(self, size=1):
+    def next_wavs(self, size=1, sec=None):
         wavfiles = []
         for (root, dirs, files) in walk(self.path):
             wavfiles.extend(['{}/{}'.format(root, f) for f in files if f.endswith(".wav")])
         wavfiles = random.sample(wavfiles, size)
-        mixed = get_mixed_wav(wavfiles, ModelConfig.SR)
-        src1, src2 = get_src1_src2_wav(wavfiles, ModelConfig.SR)
+        mixed = get_mixed_wav(wavfiles, ModelConfig.SR, sec)
+        src1, src2 = get_src1_src2_wav(wavfiles, ModelConfig.SR, sec)
         return mixed, src1, src2

@@ -7,13 +7,13 @@ from config import ModelConfig
 
 
 # Batch considered
-def get_mixed_wav(filenames, sr=ModelConfig.SR):
-    return np.array(map(lambda f: librosa.load(f, sr=sr, mono=True)[0], filenames))
+def get_mixed_wav(filenames, sr=ModelConfig.SR, sec=None):
+    return np.array(map(lambda f: librosa.load(f, sr=sr, mono=True, duration=sec)[0], filenames))
 
 
 # Batch considered
-def get_src1_src2_wav(filenames, sr=ModelConfig.SR):
-    wav = np.array(map(lambda f: librosa.load(f, sr=sr, mono=False)[0], filenames))
+def get_src1_src2_wav(filenames, sr=ModelConfig.SR, sec=None):
+    wav = np.array(map(lambda f: librosa.load(f, sr=sr, mono=False, duration=sec)[0], filenames))
     return wav[:, 0], wav[:, 1]
 
 

@@ -8,6 +8,7 @@ from data import Data
 from preprocess import *
 from config import EvalConfig
 from mir_eval.separation import bss_eval_sources
+import shutil
 
 
 def eval():
@@ -23,7 +24,7 @@ def eval():
         writer = tf.summary.FileWriter(EvalConfig.GRAPH_PATH, sess.graph)
 
         data = Data(EvalConfig.DATA_PATH)
-        mixed_wav, src1_wav, src2_wav = data.next_wavs(EvalConfig.NUM_EVAL)
+        mixed_wav, src1_wav, src2_wav = data.next_wavs(EvalConfig.NUM_EVAL, sec=EvalConfig.SECONDS)
 
         # TODO refactoring
         mixed_spec = to_spectrogram(mixed_wav)
@@ -61,31 +62,34 @@ def eval():
 
         # TODO refactoring
         tf.summary.audio('GT_mixed', mixed_wav, ModelConfig.SR)
-        tf.summary.audio('GT_music', src1_wav, ModelConfig.SR)
-        tf.summary.audio('GT_vocal', src2_wav, ModelConfig.SR)
+        # tf.summary.audio('GT_music', src1_wav, ModelConfig.SR)
+        # tf.summary.audio('GT_vocal', src2_wav, ModelConfig.SR)
         tf.summary.audio('P_mixed', pred_src1_wav + pred_src2_wav, ModelConfig.SR)
-        tf.summary.audio('P_mixed_smoothed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, ModelConfig.SR)
+        # tf.summary.audio('P_mixed_smoothed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, ModelConfig.SR)
         tf.summary.audio('P_music', pred_src1_wav, ModelConfig.SR)
-        tf.summary.audio('P_music_smoothed', smoothed_pred_src1_wav, ModelConfig.SR)
+        # tf.summary.audio('P_music_smoothed', smoothed_pred_src1_wav, ModelConfig.SR)
         tf.summary.audio('P_vocal', pred_src2_wav, ModelConfig.SR)
-        tf.summary.audio('P_vocal_smoothed', smoothed_pred_src2_wav, ModelConfig.SR)
-        # tf.summary.audio('reverse_mixed', np.flip(mixed_wav, -1), ModelConfig.SR)
-        # tf.summary.audio('reverse_src1', np.flip(src1_wav, -1), ModelConfig.SR)
-        # tf.summary.audio('reverse_src2', np.flip(src2_wav, -1), ModelConfig.SR)
+        # tf.summary.audio('P_vocal_smoothed', smoothed_pred_src2_wav, ModelConfig.SR)
 
         # TODO refactoring
         # BSS metrics
-        crop_len_src1 = min(smoothed_pred_src1_wav.shape[-1], src1_wav.shape[-1])
-        crop_len_src2 = min(smoothed_pred_src2_wav.shape[-1], src2_wav.shape[-1])
-        smoothed_pred_src1_wav = smoothed_pred_src1_wav[0][:crop_len_src1]
+        crop_len_src1 = min(pred_src1_wav.shape[-1], src1_wav.shape[-1])
+        crop_len_src2 = min(pred_src2_wav.shape[-1], src2_wav.shape[-1])
+        pred_src1_wav = pred_src1_wav[0][:crop_len_src1]
         src1_wav = src1_wav[0][:crop_len_src1]
-        smoothed_pred_src2_wav = smoothed_pred_src2_wav[0][:crop_len_src2]
+        pred_src2_wav = pred_src2_wav[0][:crop_len_src2]
         src2_wav = src2_wav[0][:crop_len_src2]
-        sdr, sir, sar, _ = bss_eval_sources(np.array([smoothed_pred_src1_wav, smoothed_pred_src2_wav]),
-                                            np.array([src1_wav, src2_wav]), False)
-        # tf.summary.scalar('music_sdr', sdr[0])
-        # tf.summary.scalar('music_sir', sir[0])
-        # tf.summary.scalar('music_sar', sar[0])
+        # crop_len_src1 = min(smoothed_pred_src1_wav.shape[-1], src1_wav.shape[-1])
+        # crop_len_src2 = min(smoothed_pred_src2_wav.shape[-1], src2_wav.shape[-1])
+        # smoothed_pred_src1_wav = smoothed_pred_src1_wav[0][:crop_len_src1]
+        # src1_wav = src1_wav[0][:crop_len_src1]
+        # smoothed_pred_src2_wav = smoothed_pred_src2_wav[0][:crop_len_src2]
+        # src2_wav = src2_wav[0][:crop_len_src2]
+        sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav, src2_wav]),
+                                            np.array([pred_src1_wav, pred_src2_wav]), False)
+        tf.summary.scalar('music_sdr', sdr[0])
+        tf.summary.scalar('music_sir', sir[0])
+        tf.summary.scalar('music_sar', sar[0])
         tf.summary.scalar('vocal_sdr', sdr[1])
         tf.summary.scalar('vocal_sir', sir[1])
         tf.summary.scalar('vocal_sar', sar[1])
@@ -96,6 +100,10 @@ def eval():
 
 
 def setup_path():
+    if EvalConfig.RE_EVAL:
+        if os.path.exists(EvalConfig.GRAPH_PATH):
+            shutil.rmtree(EvalConfig.GRAPH_PATH)
+
     if not os.path.exists(EvalConfig.RESULT_PATH):
         os.makedirs(EvalConfig.RESULT_PATH)
 

@@ -29,12 +29,16 @@ class TrainConfig:
 
 # Eval
 class EvalConfig:
-    CASE = '4-frames'
+    CASE = '4-frames-masking-layer'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
     DATA_PATH = 'dataset/kpop'
+    # DATA_PATH = 'dataset/mir-1k/Wavfile'
+    # DATA_PATH = 'dataset/ikala'
     RESULT_PATH = 'results/' + CASE
     NUM_EVAL = 1
+    SECONDS = 30
+    RE_EVAL = True
     session_conf = tf.ConfigProto(
         device_count={'CPU': 1, 'GPU': 1},
         gpu_options=tf.GPUOptions(allow_growth=True)
