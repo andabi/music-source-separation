@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 
 import tensorflow as tf
-from model import Model, load_state
+from model import Model, load_state, seq_to_batch
 import os
 import shutil
 from data import Data
@@ -49,8 +49,8 @@ def train():
             src1_spec, src2_spec = to_spectrogram(src1_wav), to_spectrogram(src2_wav)
             src1_mag, src2_mag = get_magnitude(src1_spec), get_magnitude(src2_spec)
 
-            src1, src2 = model.seq_to_batch(src1_mag), model.seq_to_batch(src2_mag)
-            mixed = model.seq_to_batch(mixed_mag)
+            src1, src2 = seq_to_batch(src1_mag), seq_to_batch(src2_mag)
+            mixed = seq_to_batch(mixed_mag)
 
             l, _, summary = sess.run([loss_fn, optimizer, summary_op],
                                      feed_dict={model.x_mixed: mixed, model.y_src1: src1, model.y_src2: src2})

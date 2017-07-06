@@ -28,7 +28,7 @@ class Model:
         return self.net()
 
     def _net(self):
-        # RNN and dense layer
+        # RNN and dense layers
         rnn_layer = MultiRNNCell([GRUCell(self.hidden_size) for _ in range(self.n_layer)])
         output_rnn, rnn_state = tf.nn.dynamic_rnn(rnn_layer, self.x_mixed, dtype=tf.float32)
         input_size = shape(self.x_mixed)[2]
@@ -45,27 +45,29 @@ class Model:
         pred_y_src1, pred_y_src2 = self()
         return tf.reduce_mean(tf.square(self.y_src1 - pred_y_src1) + tf.square(self.y_src2 - pred_y_src2), name='loss')
 
-    # TODO batch padding (don't crop tail)
-    # shape = (B, F, T) => (B, T, F)
-    def seq_to_batch(self, src):
-        src = src.transpose(0, 2, 1)
-        num_wavs, n_frame, freq = src.shape
-        seq_len = num_wavs * n_frame // ModelConfig.BATCH_SIZE + 1
 
-        # crop tail frames which is smaller than seq_len
-        n_frame -= (n_frame % seq_len)
-        src = src[:, :n_frame]
+# TODO batch padding (don't crop tail)
+# shape = (B, F, T) => (B, T, F)
+def seq_to_batch(src):
+    src = src.transpose(0, 2, 1)
+    num_wavs, n_frame, freq = src.shape
+    seq_len = num_wavs * n_frame // ModelConfig.BATCH_SIZE + 1
 
-        src = np.array(np.hsplit(src, n_frame // seq_len))
-        src = np.reshape(src, (-1, seq_len, freq))
-        return src
+    # crop tail frames which is smaller than seq_len
+    n_frame -= (n_frame % seq_len)
+    src = src[:, :n_frame]
 
-    # shape = (B, T, F) => (B, F, T)
-    def batch_to_seq(self, pred_src, num_file):
-        batch_size, n_frame, freq = pred_src.shape
-        pred_src = np.reshape(pred_src, (num_file, -1, freq))
-        pred_src = pred_src.transpose(0, 2, 1)
-        return pred_src
+    src = np.array(np.hsplit(src, n_frame // seq_len))
+    src = np.reshape(src, (-1, seq_len, freq))
+    return src
+
+
+# shape = (B, T, F) => (B, F, T)
+def batch_to_seq(pred_src, num_file):
+    batch_size, n_frame, freq = pred_src.shape
+    pred_src = np.reshape(pred_src, (num_file, -1, freq))
+    pred_src = pred_src.transpose(0, 2, 1)
+    return pred_src
 
 
 def load_state(sess, ckpt_path):

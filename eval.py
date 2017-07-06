@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 
 import tensorflow as tf
-from model import Model, load_state
+from model import Model, load_state, batch_to_seq, seq_to_batch
 import os
 from data import Data
 from preprocess import *
@@ -30,7 +30,7 @@ def eval():
         mixed_spec = to_spectrogram(mixed_wav)
         mixed_mag = get_magnitude(mixed_spec)
         mixed_phase = get_phase(mixed_spec)
-        mixed_batched = model.seq_to_batch(mixed_mag)
+        mixed_batched = seq_to_batch(mixed_mag)
 
         # assert(np.equal(mixed_spec, get_stft_matrix(mixed_magnitude, mixed_phase)).all())
         # a = np.around(mixed_spec, 3)
@@ -41,8 +41,8 @@ def eval():
 
         # (magnitude, phase) -> spectrogram -> wav
         pred_src1_mag, pred_src2_mag = pred
-        pred_src1_mag = model.batch_to_seq(pred_src1_mag, EvalConfig.NUM_EVAL)
-        pred_src2_mag = model.batch_to_seq(pred_src2_mag, EvalConfig.NUM_EVAL)
+        pred_src1_mag = batch_to_seq(pred_src1_mag, EvalConfig.NUM_EVAL)
+        pred_src2_mag = batch_to_seq(pred_src2_mag, EvalConfig.NUM_EVAL)
         mixed_phase = mixed_phase[:, :, :pred_src1_mag.shape[-1]]
 
         # (magnitude, phase) -> spectrogram -> wav (with smoothing using t-f mask)
@@ -50,9 +50,9 @@ def eval():
         mask_src2 = 1.0 - mask_src1
         seq_len = mixed_batched.shape[0] * mixed_batched.shape[1]
         mixed_mag = mixed_mag[:, :, :seq_len]
-
         pred_src1_mag = mixed_mag * mask_src1
         pred_src2_mag = mixed_mag * mask_src2
+
         pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)
         pred_src2_spec = get_stft_matrix(pred_src2_mag, mixed_phase)
         pred_src1_wav, pred_src2_wav = to_wav(pred_src1_spec), to_wav(pred_src2_spec)
@@ -67,7 +67,7 @@ def eval():
         tf.summary.audio('P_music', pred_src1_wav, ModelConfig.SR)
         tf.summary.audio('P_vocal', pred_src2_wav, ModelConfig.SR)
 
-        # TODO refactoring
+        # TODO refactoring(batch, nsdr, global sdr,sir,sar,nsdr)
         # BSS metrics
         crop_len_src1 = min(pred_src1_wav.shape[-1], src1_wav.shape[-1])
         crop_len_src2 = min(pred_src2_wav.shape[-1], src2_wav.shape[-1])
@@ -83,6 +83,15 @@ def eval():
         # src2_wav = src2_wav[0][:crop_len_src2]
         sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav, src2_wav]),
                                             np.array([pred_src1_wav, pred_src2_wav]), False)
+        tf.summary.scalar('music_sdr', sdr[0])
+        tf.summary.scalar('music_sir', sir[0])
+        tf.summary.scalar('music_sar', sar[0])
+        tf.summary.scalar('vocal_sdr', sdr[1])
+        tf.summary.scalar('vocal_sir', sir[1])
+        tf.summary.scalar('vocal_sar', sar[1])
+
+        sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav, src2_wav]),
+                                            np.array([pred_src1_wav, src2_wav]), False)
         tf.summary.scalar('music_sdr', sdr[0])
         tf.summary.scalar('music_sir', sir[0])
         tf.summary.scalar('music_sar', sar[0])
