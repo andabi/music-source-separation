@@ -44,19 +44,18 @@ def eval():
         pred_src1_mag = model.batch_to_seq(pred_src1_mag, EvalConfig.NUM_EVAL)
         pred_src2_mag = model.batch_to_seq(pred_src2_mag, EvalConfig.NUM_EVAL)
         mixed_phase = mixed_phase[:, :, :pred_src1_mag.shape[-1]]
+
+        # (magnitude, phase) -> spectrogram -> wav (with smoothing using t-f mask)
+        mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
+        mask_src2 = 1.0 - mask_src1
+        seq_len = mixed_batched.shape[0] * mixed_batched.shape[1]
+        mixed_mag = mixed_mag[:, :, :seq_len]
+
+        pred_src1_mag = mixed_mag * mask_src1
+        pred_src2_mag = mixed_mag * mask_src2
         pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)
         pred_src2_spec = get_stft_matrix(pred_src2_mag, mixed_phase)
         pred_src1_wav, pred_src2_wav = to_wav(pred_src1_spec), to_wav(pred_src2_spec)
-
-        # # (magnitude, phase) -> spectrogram -> wav (with smoothing using t-f mask)
-        mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
-        mask_src2 = 1.0 - mask_src1
-        smoothed_pred_src1_magnitude = pred_src1_mag * mask_src1
-        smoothed_pred_src2_magnitude = pred_src2_mag * mask_src2
-        smoothed_pred_src1_spec, smoothed_pred_src2_spec = get_stft_matrix(smoothed_pred_src1_magnitude, mixed_phase), \
-                                                           get_stft_matrix(smoothed_pred_src2_magnitude, mixed_phase)
-        smoothed_pred_src1_wav, smoothed_pred_src2_wav = to_wav(smoothed_pred_src1_spec), to_wav(
-            smoothed_pred_src2_spec)
 
         # print(np.max((mixed_wav[:,:60000] - pred_src2_wav[:,:60000] - pred_src1_wav[:,:60000])))
 
@@ -65,11 +64,8 @@ def eval():
         # tf.summary.audio('GT_music', src1_wav, ModelConfig.SR)
         # tf.summary.audio('GT_vocal', src2_wav, ModelConfig.SR)
         tf.summary.audio('P_mixed', pred_src1_wav + pred_src2_wav, ModelConfig.SR)
-        # tf.summary.audio('P_mixed_smoothed', smoothed_pred_src1_wav + smoothed_pred_src2_wav, ModelConfig.SR)
         tf.summary.audio('P_music', pred_src1_wav, ModelConfig.SR)
-        # tf.summary.audio('P_music_smoothed', smoothed_pred_src1_wav, ModelConfig.SR)
         tf.summary.audio('P_vocal', pred_src2_wav, ModelConfig.SR)
-        # tf.summary.audio('P_vocal_smoothed', smoothed_pred_src2_wav, ModelConfig.SR)
 
         # TODO refactoring
         # BSS metrics
