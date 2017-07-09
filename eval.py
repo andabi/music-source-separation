@@ -17,6 +17,7 @@ def eval():
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
 
     with tf.Session(config=EvalConfig.session_conf) as sess:
+
         # Initialized, Load state
         sess.run(tf.global_variables_initializer())
         load_state(sess, EvalConfig.CKPT_PATH)
@@ -32,11 +33,6 @@ def eval():
         mixed_phase = get_phase(mixed_spec)
         mixed_batched = seq_to_batch(mixed_mag)
 
-        # assert(np.equal(mixed_spec, get_stft_matrix(mixed_magnitude, mixed_phase)).all())
-        # a = np.around(mixed_spec, 3)
-        # b = np.around(get_stft_matrix(mixed_magnitude, mixed_phase), 3)
-        # print((a == b).all())
-
         pred = sess.run(model(), feed_dict={model.x_mixed: mixed_batched})
 
         # (magnitude, phase) -> spectrogram -> wav
@@ -45,63 +41,61 @@ def eval():
         pred_src2_mag = batch_to_seq(pred_src2_mag, EvalConfig.NUM_EVAL)
         mixed_phase = mixed_phase[:, :, :pred_src1_mag.shape[-1]]
 
-        # (magnitude, phase) -> spectrogram -> wav (with smoothing using t-f mask)
+        # Time-frequency masking
         mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
         mask_src2 = 1.0 - mask_src1
-        seq_len = mixed_batched.shape[0] * mixed_batched.shape[1]
+        seq_len = mixed_batched.shape[0] * mixed_batched.shape[1] // EvalConfig.NUM_EVAL
         mixed_mag = mixed_mag[:, :, :seq_len]
         pred_src1_mag = mixed_mag * mask_src1
         pred_src2_mag = mixed_mag * mask_src2
 
+        # (magnitude, phase) -> spectrogram -> wav
         pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)
         pred_src2_spec = get_stft_matrix(pred_src2_mag, mixed_phase)
         pred_src1_wav, pred_src2_wav = to_wav(pred_src1_spec), to_wav(pred_src2_spec)
 
-        # print(np.max((mixed_wav[:,:60000] - pred_src2_wav[:,:60000] - pred_src1_wav[:,:60000])))
-
-        # TODO refactoring
+        # Write the result
         tf.summary.audio('GT_mixed', mixed_wav, ModelConfig.SR)
-        # tf.summary.audio('GT_music', src1_wav, ModelConfig.SR)
-        # tf.summary.audio('GT_vocal', src2_wav, ModelConfig.SR)
-        tf.summary.audio('P_mixed', pred_src1_wav + pred_src2_wav, ModelConfig.SR)
-        tf.summary.audio('P_music', pred_src1_wav, ModelConfig.SR)
-        tf.summary.audio('P_vocal', pred_src2_wav, ModelConfig.SR)
+        tf.summary.audio('Pred_music', pred_src1_wav, ModelConfig.SR)
+        tf.summary.audio('Pred_vocal', pred_src2_wav, ModelConfig.SR)
 
-        # TODO refactoring(batch, nsdr, global sdr,sir,sar,nsdr)
-        # BSS metrics
-        crop_len_src1 = min(pred_src1_wav.shape[-1], src1_wav.shape[-1])
-        crop_len_src2 = min(pred_src2_wav.shape[-1], src2_wav.shape[-1])
-        pred_src1_wav = pred_src1_wav[0][:crop_len_src1]
-        src1_wav = src1_wav[0][:crop_len_src1]
-        pred_src2_wav = pred_src2_wav[0][:crop_len_src2]
-        src2_wav = src2_wav[0][:crop_len_src2]
-        # crop_len_src1 = min(smoothed_pred_src1_wav.shape[-1], src1_wav.shape[-1])
-        # crop_len_src2 = min(smoothed_pred_src2_wav.shape[-1], src2_wav.shape[-1])
-        # smoothed_pred_src1_wav = smoothed_pred_src1_wav[0][:crop_len_src1]
-        # src1_wav = src1_wav[0][:crop_len_src1]
-        # smoothed_pred_src2_wav = smoothed_pred_src2_wav[0][:crop_len_src2]
-        # src2_wav = src2_wav[0][:crop_len_src2]
-        sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav, src2_wav]),
-                                            np.array([pred_src1_wav, pred_src2_wav]), False)
-        tf.summary.scalar('music_sdr', sdr[0])
-        tf.summary.scalar('music_sir', sir[0])
-        tf.summary.scalar('music_sar', sar[0])
-        tf.summary.scalar('vocal_sdr', sdr[1])
-        tf.summary.scalar('vocal_sir', sir[1])
-        tf.summary.scalar('vocal_sar', sar[1])
+        # Compute BSS metrics
+        gnsdr, gsir, gsar = bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav)
 
-        sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav, src2_wav]),
-                                            np.array([pred_src1_wav, src2_wav]), False)
-        tf.summary.scalar('music_sdr', sdr[0])
-        tf.summary.scalar('music_sir', sir[0])
-        tf.summary.scalar('music_sar', sar[0])
-        tf.summary.scalar('vocal_sdr', sdr[1])
-        tf.summary.scalar('vocal_sir', sir[1])
-        tf.summary.scalar('vocal_sar', sar[1])
+        # Write the score of BSS metrics
+        tf.summary.scalar('GNSDR_music', gnsdr[0])
+        tf.summary.scalar('GSIR_music', gsir[0])
+        tf.summary.scalar('GSAR_music', gsar[0])
+        tf.summary.scalar('GNSDR_vocal', gnsdr[1])
+        tf.summary.scalar('GSIR_vocal', gsir[1])
+        tf.summary.scalar('GSAR_vocal', gsar[1])
 
         writer.add_summary(sess.run(tf.summary.merge_all()), global_step=global_step.eval())
 
         writer.close()
+
+
+def bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav):
+    len_cropped = pred_src1_wav.shape[-1]
+    src1_wav = src1_wav[:, :len_cropped]
+    src2_wav = src2_wav[:, :len_cropped]
+    mixed_wav = mixed_wav[:, :len_cropped]
+    gnsdr, gsir, gsar = np.zeros(2), np.zeros(2), np.zeros(2)
+    total_len = 0
+    for i in range(EvalConfig.NUM_EVAL):
+        sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav[i], src2_wav[i]]),
+                                            np.array([pred_src1_wav[i], pred_src2_wav[i]]), False)
+        sdr_mixed, _, _, _ = bss_eval_sources(np.array([src1_wav[i], src2_wav[i]]),
+                                              np.array([mixed_wav[i], mixed_wav[i]]), False)
+        nsdr = sdr - sdr_mixed
+        gnsdr += len_cropped * nsdr
+        gsir += len_cropped * sir
+        gsar += len_cropped * sar
+        total_len += len_cropped
+    gnsdr = gnsdr / total_len
+    gsir = gsir / total_len
+    gsar = gsar / total_len
+    return gnsdr, gsir, gsar
 
 
 def setup_path():

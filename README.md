@@ -93,12 +93,12 @@ But discriminative training with carefully chosen weight(r) provides a bit bette
 * A visualization of magnitude spectrogram in log scale for mixed, vocal, and music.
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result4.png" width="100%"></p>
 
-# \[Related Paper\]Music Signal Processing Using Vector Product Neural Networks (2017)
+# \[Related Paper\] Music Signal Processing Using Vector Product Neural Networks (2017)
 ## Approach
 * Some transformation methods are applied to enrich the information for each frame
   * Instead of Posen's approach(simply concatenate previous-k and subsequent-k frames)
 * Vector Product Neural Network(VPNN) proposed by [4] is used.
-  * Each t-f unit(magnitude) is 3-dimensional vector.
+  * In VPNN, the input data, weights, and biases are all three-dimensional vectors
 ### Context-windowed Transformation
 * previous, current, and subsequent frame as 3-dimensional vector
 * For VPNN, 3-dimensional vector is used as a 
