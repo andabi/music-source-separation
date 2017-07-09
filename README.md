@@ -39,9 +39,9 @@ I used Posen's deep recurrent neural network(RNN) model [2, 3]. But I used iKala
 
 * Further, to prevent different sources to get similar each other, 'discrimination' term is considered additionally.
   * The discrimination weight(r) should be carefully chosen because it causes ignoring the first term when training(large r (e.g. r >= 1) makes the result bad)
-J<sub>MSE</sub> = <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/disc_mse.png" height="30px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/disc_mse.png" height="30px"></p>
 
-J<sub>KL</sub> = <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/disc_kl.png" height="30px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/disc_kl.png" height="30px"></p>
 
 
 ## Experiments

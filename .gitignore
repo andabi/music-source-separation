@@ -1,3 +1,4 @@
+*.wav
 dataset
 .idea
 *.pyc

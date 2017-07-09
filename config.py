@@ -14,11 +14,11 @@ class ModelConfig:
 
 # Train
 class TrainConfig:
-    CASE = '4-frames-masking-layer'
+    CASE = 'ikala-mir1k'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/train'
-    DATA_PATH = 'dataset/ikala'
-    LR = 0.0001
+    DATA_PATH = 'dataset/train'
+    LR = 0.0005
     FINAL_STEP = 50000
     CKPT_STEP = 100
     RE_TRAIN = False
@@ -29,11 +29,11 @@ class TrainConfig:
 
 # Eval
 class EvalConfig:
-    CASE = '4-frames-masking-layer'
+    CASE = 'ikala-mir1k'
     # CASE = '4-frames'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
-    DATA_PATH = 'dataset/kpop'
+    DATA_PATH = 'dataset/eval'
     # DATA_PATH = 'dataset/mir-1k/Wavfile'
     # DATA_PATH = 'dataset/ikala'
     RESULT_PATH = 'results/' + CASE
