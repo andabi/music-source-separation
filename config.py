@@ -18,7 +18,7 @@ class TrainConfig:
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/train'
     DATA_PATH = 'dataset/train'
-    LR = 0.0005
+    LR = 0.0001
     FINAL_STEP = 50000
     CKPT_STEP = 100
     RE_TRAIN = False

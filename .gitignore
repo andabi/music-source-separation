@@ -4,3 +4,4 @@ dataset
 *.pyc
 checkpoints
 graphs
+.DS_Store

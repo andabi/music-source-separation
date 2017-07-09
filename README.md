@@ -4,12 +4,22 @@ Recently, deep neural networks have been used in numorous fields and improved qu
 Applying deep neural nets to MIR(Music Information Retrieval) tasks also gave us quantum quality improvement. 
 In this project, I implemented a neural network model for music source separation in Tensorflow.
 Music source separation is the task to separate vocal sound from music such as k-pop.
-## Experiments
-I used Posen's deep recurrent neural network(RNN) model [2, 3]. But I used iKala dataset introduced by [1] instead of using MIR-1K dataset which is open to researchers.
-3 RNN layers + 2 dense layer + 2 time-frequency masking layer
-* B = batch size
-* S = sequence length
-* F = number of frequencies
+
+## Implementations
+* I used Posen's deep recurrent neural network(RNN) model [2, 3].
+  * 3 RNN layers + 2 dense layer + 2 time-frequency masking layer
+    * B = batch size
+    * S = sequence length
+    * F = number of frequencies
+* I used iKala dataset introduced by [1] and MIR-1K dataset which is public together when training.
+
+## Usage
+* config.py: set dataset path appropriately.
+* train.py: run it to train
+  * check loss graph in Tensorboard.
+* eval.py: run it to test
+  * check the result in Tesorboard audio tab.
+
 # \[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014)
 ## Proposed Methods
 ### Overall process
@@ -18,7 +28,7 @@ I used Posen's deep recurrent neural network(RNN) model [2, 3]. But I used iKala
 * I only make use of the magnitude as input feature of the RNN layer.
 * I get the estimated magnitude spectra of each sources as outputs of the model.
 * The estimated spectra is transformed to waveform of each sources by ISTFT.
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/overall.png" width="75%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/overall.png" width="75%"></p>
 
 ### Model
 * RNN layers (3 layers)
@@ -28,58 +38,98 @@ I used Posen's deep recurrent neural network(RNN) model [2, 3]. But I used iKala
   * each layer for each source
   * regularize sum of outputs of each dense layer for each (time, frequency) to be inputs (mixed)
   * no non-linearity
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/model.png" width="75%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/model.png" width="75%"></p>
 
 ### Loss
 * Mean squared error(MSE) or KL divergence between estimated magnitude and ground true are used as the loss function.
 
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/mse.png" height="30px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/mse.png" height="30px"></p>
 
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/kl.png" height="30px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/kl.png" height="30px"></p>
 
 * Further, to prevent different sources to get similar each other, 'discrimination' term is considered additionally.
   * The discrimination weight(r) should be carefully chosen because it causes ignoring the first term when training(large r (e.g. r >= 1) makes the result bad)
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/disc_mse.png" height="30px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/disc_mse.png" height="30px"></p>
 
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/disc_kl.png" height="30px"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/disc_kl.png" height="30px"></p>
 
 
 ## Experiments
 ### Settings
-#### [MIR-1K dataset](https://sites.google.com/site/unvoicedsoundseparation/mir-1k)
-* 1000 song clip with a sample rate of 16KHz, with duration from 4 to 13 secs.
-* extracted from 110 Karaoke songs performed by both male and female amateurs.
-* singing voice and background music in differenct channels.
-#### Data augmentation
-data augmentation: circularly shift the singing voice and mix them with the background music.
-1024 points STFT with 50% overlap
-L-BFGS optimizer
-#### Evaluation Metric
+* [MIR-1K dataset](https://sites.google.com/site/unvoicedsoundseparation/mir-1k) is used.
+  * 1000 song clip with a sample rate of 16KHz, with duration from 4 to 13 secs.
+  * extracted from 110 Karaoke songs performed by both male and female amateurs.
+  * singing voice and background music in differenct channels.
+* Data augmentation
+  * circularly shift the singing voice and mix them with the background music.
+* 1024 points STFT with 50% overlap
+* L-BFGS optimizer rather than gradient decent methods
+* Concatenating neighboring 1 frame
+  * To enrich context, previous and next frames are concatenated to current frame.
+### Evaluation Metric
 [BSS-EVAL 3.0 metrics](https://hal.inria.fr/inria-00544230/document) are used.
-v^ = estimated singing voice, v = ground truth singing voice, m = ground truth background music
-x = the mixture
-* Source to Distortion Ratio (SDR), GSDR: how much similar the estimated sound is with the original audio from same source?
-* Source to Interferences Ratio (SIR), GSIR: how much discriminative the estimated sound is with the audio from different sources?
-* Sources to Artifacts Ratio (SAR), GSAR:
-* NSDR(Normalized SDR), GNSDR: SDR improvement between the estimated singing voice and the mixture.
-  * SDR(v^, v) - SDR(x, v)
+<b>pred_v</b> = estimated voice, <b<v</b> = ground truth voice,
+<b>m</b> = ground truth music, <b>x</b> = the mixture
+* Source to Distortion Ratio (SDR) or GSDR(length weighted)
+  * SDR(v) = how similar pred_v with v?
+* Source to Interferences Ratio (SIR) or GSIR(length weighted)
+  * SIR(v) = how discriminative pred_v with m?
+* Sources to Artifacts Ratio (SAR) or GSAR(length weighted)
+* NSDR(Normalized SDR) or GNSDR(length weighted)
+  * SDR improvement between the estimated voice and the mixture.
+  * SDR(pred_v, v) - SDR(x, v)
 ### Results
 * The proposed neural network models achieve 2.30-2.48 dB GNSDR gain, 4.32-5.42 dB GSIR gain with similar GSAR performance, compared with conventional approaches. (quantum jump!!!)
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/result3.png" width="50%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result3.png" width="50%"></p>
 
 * Concatenating neighboring 1 frame provides better results.
 We can make a assumption that more sufficient information than single frame provides more hint to the neural net.
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/result1.png" width="50%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result1.png" width="50%"></p>
 
 * The RNN-based models, in fact, do not make any plausible improvement comparing with DNN.
 But discriminative training with carefully chosen weight(r) provides a bit better performance in the experiments.
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/result1.png" width="50%"></p>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result2.png" width="50%"></p>
 
-<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/result4.png" width="100%"></p>
+* A visualization of magnitude spectrogram in log scale for mixed, vocal, and music.
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result4.png" width="100%"></p>
 
-# Music Signal Processing Using Vector Product Neural Networks (2017)
+# \[Related Paper\]Music Signal Processing Using Vector Product Neural Networks (2017)
+## Approach
+* Some transformation methods are applied to enrich the information for each frame
+  * Instead of Posen's approach(simply concatenate previous-k and subsequent-k frames)
+* Vector Product Neural Network(VPNN) proposed by [4] is used.
+  * Each t-f unit(magnitude) is 3-dimensional vector.
+### Context-windowed Transformation
+* previous, current, and subsequent frame as 3-dimensional vector
+* For VPNN, 3-dimensional vector is used as a 
+### Spectral-color Transformation
+* Transformation the magnitude of each t-f unit to RGB colored value (3-dimensional)
+  * x is the magnitude of each t-f unit,
+  * n a scalar to bias the generation of RGB values.
+    * empirically set n to 0.0938 in this work.
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/spectral_color_trans.png" width="50%"></p>
+
+### Loss
+* MSE loss is used like Posen's work.
+## Experiments
+### Settings
+* [iKala dataset](http://mac.citi.sinica.edu.tw/ikala/) is used.
+  * 252 30-second excerpts sampled from 206 iKala songs
+* 63 training clips and 189 testing clips. 
+* All clips are downsampled to 16000 Hz. 
+* 1024-point window and a 256-point hop size.
+* VPNN of 3-layers and 512 units each layer.
+* time frequency masking applied.
+
+### Evaluation Metric
+[GNSDR, GSIR, GSAR](https://hal.inria.fr/inria-00544230/document) are used.
+### Results
+* CVPNN and WVPNN performs better than DNNs which have same size of weights.
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/result.png" width="75%"></p>
+
 # References
 1. Zhe-Cheng Fan, Tak-Shing T. Chan, Yi-Hsuan Yang, and Jyh-Shing R. Jang, "[Music Signal Processing Using Vector Product
 Neural Networks](http://mac.citi.sinica.edu.tw/~yang/pub/fan17dlm.pdf)", Proc. of the First Int. Workshop on Deep Learning and Music joint with IJCNN, May, 2017
 2. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Joint Optimization of Masks and Deep Recurrent Neural Networks for Monaural Source Separation](http://paris.cs.illinois.edu/pubs/huang-ismir2014.pdf)", IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 23, no. 12, pp. 2136–2147, Dec. 2015
 3. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks](https://posenhuang.github.io/papers/DRNN_ISMIR2014.pdf)" in International Society for Music Information Retrieval Conference (ISMIR) 2014.
+4. Tohru Nitta, "[A backpropagation algorithm for neural networks based an 3D vector product. In Proc. IJCNN](https://staff.aist.go.jp/tohru-nitta/IJCNN93-VP.pdf)", Proc. of IJCAI, 2007.
