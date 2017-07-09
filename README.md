@@ -1,43 +1,38 @@
 # Deep Neural Network for Music Source Separation in Tensorflow
 ## Intro
-Recently, deep neural networks have been used in numorous fields and improved quality of many tasks in the fields. 
-Applying deep neural nets to MIR(Music Information Retrieval) tasks also gave us quantum quality improvement. 
-In this project, I implemented a neural network model for music source separation in Tensorflow.
-Music source separation is the task to separate vocal sound from music such as k-pop.
+Recently, deep neural networks have been used in numerous fields and improved quality of many tasks in the fields. 
+Applying deep neural nets to MIR(Music Information Retrieval) tasks also provided us quantum performance improvement.
+Music source separation is a kind of task for separating voice from music such as pop music.
+In this project, I implement a deep neural network model for music source separation in Tensorflow.
 
 ## Implementations
 * I used Posen's deep recurrent neural network(RNN) model [2, 3].
   * 3 RNN layers + 2 dense layer + 2 time-frequency masking layer
-    * B = batch size
-    * S = sequence length
-    * F = number of frequencies
 * I used iKala dataset introduced by [1] and MIR-1K dataset which is public together when training.
 
 ## Usage
 * config.py: set dataset path appropriately.
 * train.py: run it to train
-  * check loss graph in Tensorboard.
+  * check the loss graph in Tensorboard.
 * eval.py: run it to test
-  * check the result in Tesorboard audio tab.
+  * check the result in Tensorboard (audio tab).
 
 # \[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014)
 ## Proposed Methods
 ### Overall process
-* Waveform of a music(mixed wav) is transformed to magnitude and phase spectra.
-* It could be converted by Short-Time Fourier Transformation(STFT).
-* I only make use of the magnitude as input feature of the RNN layer.
-* I get the estimated magnitude spectra of each sources as outputs of the model.
-* The estimated spectra is transformed to waveform of each sources by ISTFT.
+* Waveform of a music(the mixture of voice and background music) is transformed to magnitude and phase spectra by Short-Time Fourier Transformation(STFT).
+* Only magnitude spectra are processed as input of the RNN layer.
+* Estimated magnitude spectra of each sources and phase spectra of the mixture are transformed to waveform of each sources by ISTFT(inverse STFT).
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/overall.png" width="75%"></p>
 
 ### Model
 * RNN layers (3 layers)
 * Dense layer
-  * each layer for each source
-* Time-frequency masking layer
-  * each layer for each source
-  * regularize sum of outputs of each dense layer for each (time, frequency) to be inputs (mixed)
+  * 1 for each source
+* Time-frequency masking layer (normalization)
+  * 1 for each source
   * no non-linearity
+  * src1's magnitude + src2's magnitude = input's magnitude
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/model.png" width="75%"></p>
 
 ### Loss
@@ -59,25 +54,24 @@ Music source separation is the task to separate vocal sound from music such as k
 * [MIR-1K dataset](https://sites.google.com/site/unvoicedsoundseparation/mir-1k) is used.
   * 1000 song clip with a sample rate of 16KHz, with duration from 4 to 13 secs.
   * extracted from 110 Karaoke songs performed by both male and female amateurs.
-  * singing voice and background music in differenct channels.
+  * singing voice and background music in different channels.
 * Data augmentation
   * circularly shift the singing voice and mix them with the background music.
-* 1024 points STFT with 50% overlap
-* L-BFGS optimizer rather than gradient decent methods
+* 1024 points STFT with 50% overlap (hop size=512 points)
+* L-BFGS optimizer rather than gradient decent optimizers
 * Concatenating neighboring 1 frame
   * To enrich context, previous and next frames are concatenated to current frame.
 ### Evaluation Metric
-[BSS-EVAL 3.0 metrics](https://hal.inria.fr/inria-00544230/document) are used.
-<b>pred_v</b> = estimated voice, <b<v</b> = ground truth voice,
-<b>m</b> = ground truth music, <b>x</b> = the mixture
-* Source to Distortion Ratio (SDR) or GSDR(length weighted)
-  * SDR(v) = how similar pred_v with v?
-* Source to Interferences Ratio (SIR) or GSIR(length weighted)
-  * SIR(v) = how discriminative pred_v with m?
-* Sources to Artifacts Ratio (SAR) or GSAR(length weighted)
-* NSDR(Normalized SDR) or GNSDR(length weighted)
-  * SDR improvement between the estimated voice and the mixture.
-  * SDR(pred_v, v) - SDR(x, v)
+* [BSS-EVAL 3.0 metrics](https://hal.inria.fr/inria-00544230/document) are used.
+* (<b>v'</b> = estimated voice, <b>v</b> = ground truth voice, <b>m</b> = ground truth music, <b>x</b> = the mixture)
+  * Source to Distortion Ratio (SDR) or GSDR(length weighted)
+    * SDR(v) = how similar v' with v?
+  * Source to Interferences Ratio (SIR) or GSIR(length weighted)
+    * SIR(v) = how discriminative v' with m?
+  * Sources to Artifacts Ratio (SAR) or GSAR(length weighted)
+  * NSDR(Normalized SDR) or GNSDR(length weighted)
+    * SDR improvement between the estimated voice and the mixture.
+    * SDR(v', v) - SDR(x, v)
 ### Results
 * The proposed neural network models achieve 2.30-2.48 dB GNSDR gain, 4.32-5.42 dB GSIR gain with similar GSAR performance, compared with conventional approaches. (quantum jump!!!)
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result3.png" width="50%"></p>

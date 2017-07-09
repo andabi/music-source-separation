@@ -2,7 +2,7 @@
 # !/usr/bin/env python
 
 import tensorflow as tf
-from model import Model, load_state, batch_to_seq, seq_to_batch
+from model import Model, load_state, batch_to_spec, spec_to_batch
 import os
 from data import Data
 from preprocess import *
@@ -31,23 +31,23 @@ def eval():
         mixed_spec = to_spectrogram(mixed_wav)
         mixed_mag = get_magnitude(mixed_spec)
         mixed_phase = get_phase(mixed_spec)
-        mixed_batched = seq_to_batch(mixed_mag)
+        mixed_batched = spec_to_batch(mixed_mag)
 
         pred = sess.run(model(), feed_dict={model.x_mixed: mixed_batched})
 
         # (magnitude, phase) -> spectrogram -> wav
         pred_src1_mag, pred_src2_mag = pred
-        pred_src1_mag = batch_to_seq(pred_src1_mag, EvalConfig.NUM_EVAL)
-        pred_src2_mag = batch_to_seq(pred_src2_mag, EvalConfig.NUM_EVAL)
+        pred_src1_mag = batch_to_spec(pred_src1_mag, EvalConfig.NUM_EVAL)
+        pred_src2_mag = batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)
         mixed_phase = mixed_phase[:, :, :pred_src1_mag.shape[-1]]
 
         # Time-frequency masking
-        mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
-        mask_src2 = 1.0 - mask_src1
-        seq_len = mixed_batched.shape[0] * mixed_batched.shape[1] // EvalConfig.NUM_EVAL
-        mixed_mag = mixed_mag[:, :, :seq_len]
-        pred_src1_mag = mixed_mag * mask_src1
-        pred_src2_mag = mixed_mag * mask_src2
+        # mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
+        # mask_src2 = 1.0 - mask_src1
+        # seq_len = mixed_batched.shape[0] * mixed_batched.shape[1] // EvalConfig.NUM_EVAL
+        # mixed_mag = mixed_mag[:, :, :seq_len]
+        # pred_src1_mag = mixed_mag * mask_src1
+        # pred_src2_mag = mixed_mag * mask_src2
 
         # (magnitude, phase) -> spectrogram -> wav
         pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)

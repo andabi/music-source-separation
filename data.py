@@ -11,7 +11,7 @@ class Data:
     def __init__(self, path):
         self.path = path
 
-    def next_wavs(self, size=1, sec=None):
+    def next_wavs(self, size=1, sec=ModelConfig.MAX_SECONDS):
         wavfiles = []
         for (root, dirs, files) in walk(self.path):
             wavfiles.extend(['{}/{}'.format(root, f) for f in files if f.endswith(".wav")])

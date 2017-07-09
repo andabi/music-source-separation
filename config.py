@@ -6,11 +6,11 @@ import tensorflow as tf
 
 # Model
 class ModelConfig:
-    BATCH_SIZE = 64
+    BATCH_SIZE = 32
     SR = 16000
     L_FRAME = 1024
     L_HOP = L_FRAME / 4
-
+    MAX_SECONDS = 30
 
 # Train
 class TrainConfig:
@@ -19,7 +19,7 @@ class TrainConfig:
     GRAPH_PATH = 'graphs/' + CASE + '/train'
     DATA_PATH = 'dataset/train'
     LR = 0.0001
-    FINAL_STEP = 50000
+    FINAL_STEP = 100000
     CKPT_STEP = 100
     RE_TRAIN = False
     session_conf = tf.ConfigProto(
@@ -29,8 +29,8 @@ class TrainConfig:
 
 # Eval
 class EvalConfig:
-    # CASE = 'ikala-mir1k'
-    CASE = '4-frames-masking-layer'
+    CASE = 'ikala-mir1k'
+    # CASE = '4-frames-masking-layer'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
     DATA_PATH = 'dataset/eval'
