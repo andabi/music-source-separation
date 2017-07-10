@@ -17,7 +17,7 @@ In this project, I implement a deep neural network model for music source separa
 * eval.py: run it to test
   * check the result in Tensorboard (audio tab).
 
-# \[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014)
+# \[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014) <sup>\[3\]</sup>
 ## Proposed Methods
 ### Overall process
 * Waveform of a music(the mixture of voice and background music) is transformed to magnitude and phase spectra by Short-Time Fourier Transformation(STFT).
@@ -65,13 +65,13 @@ In this project, I implement a deep neural network model for music source separa
 * [BSS-EVAL 3.0 metrics](https://hal.inria.fr/inria-00544230/document) are used.
 * (<b>v'</b> = estimated voice, <b>v</b> = ground truth voice, <b>m</b> = ground truth music, <b>x</b> = the mixture)
   * Source to Distortion Ratio (SDR) or GSDR(length weighted)
-    * SDR(v) = how similar v' with v?
+    * SDR(<b>v</b>) = how similar <b>v'</b> with <b>v</b>?
   * Source to Interferences Ratio (SIR) or GSIR(length weighted)
-    * SIR(v) = how discriminative v' with m?
+    * SIR(<b>v</b>) = how discriminative <b>v'</b> with <b>m</b>?
   * Sources to Artifacts Ratio (SAR) or GSAR(length weighted)
   * NSDR(Normalized SDR) or GNSDR(length weighted)
     * SDR improvement between the estimated voice and the mixture.
-    * SDR(v', v) - SDR(x, v)
+    * SDR(<b>v'</b>, <b>v</b>) - SDR(<b>x</b>, <b>v</b>)
 ### Results
 * The proposed neural network models achieve 2.30-2.48 dB GNSDR gain, 4.32-5.42 dB GSIR gain with similar GSAR performance, compared with conventional approaches. (quantum jump!!!)
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result3.png" width="50%"></p>
@@ -84,20 +84,23 @@ We can make a assumption that more sufficient information than single frame prov
 But discriminative training with carefully chosen weight(r) provides a bit better performance in the experiments.
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result2.png" width="50%"></p>
 
-* A visualization of magnitude spectrogram in log scale for mixed, vocal, and music.
+* A visualization of magnitude spectrogram (in log scale) for the mixture, voice, and background music.
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result4.png" width="100%"></p>
 
-# \[Related Paper\] Music Signal Processing Using Vector Product Neural Networks (2017)
+# \[Related Paper\] Music Signal Processing Using Vector Product Neural Networks (2017) <sup>\[1\]</sup>
 ## Approach
 * Some transformation methods are applied to enrich the information for each frame
   * Instead of Posen's approach(simply concatenate previous-k and subsequent-k frames)
 * Vector Product Neural Network(VPNN) proposed by [4] is used.
   * In VPNN, the input data, weights, and biases are all three-dimensional vectors
-### Context-windowed Transformation
+  * each elements(vectors) are operated by cross product of vectors.
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/vvpn.png" width="50%"></p>
+
+### Context-windowed Transformation (WVPNN)
 * previous, current, and subsequent frame as 3-dimensional vector
-* For VPNN, 3-dimensional vector is used as a 
-### Spectral-color Transformation
-* Transformation the magnitude of each t-f unit to RGB colored value (3-dimensional)
+* take only second value(current frame) as output in 3-dimensional output vector
+### Spectral-color Transformation (CVPNN)
+* Transformation the magnitude to RGB colored value (3-dimensional vector)
   * x is the magnitude of each t-f unit,
   * n a scalar to bias the generation of RGB values.
     * empirically set n to 0.0938 in this work.
@@ -127,3 +130,9 @@ Neural Networks](http://mac.citi.sinica.edu.tw/~yang/pub/fan17dlm.pdf)", Proc. o
 2. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Joint Optimization of Masks and Deep Recurrent Neural Networks for Monaural Source Separation](http://paris.cs.illinois.edu/pubs/huang-ismir2014.pdf)", IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 23, no. 12, pp. 2136–2147, Dec. 2015
 3. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks](https://posenhuang.github.io/papers/DRNN_ISMIR2014.pdf)" in International Society for Music Information Retrieval Conference (ISMIR) 2014.
 4. Tohru Nitta, "[A backpropagation algorithm for neural networks based an 3D vector product. In Proc. IJCNN](https://staff.aist.go.jp/tohru-nitta/IJCNN93-VP.pdf)", Proc. of IJCAI, 2007.
+
+<audio controls="controls">
+  <source type="audio/mp3" src="filename.mp3"></source>
+  <source type="audio/ogg" src="filename.ogg"></source>
+  <p>Your browser does not support the audio element.</p>
+</audio>
