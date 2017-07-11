@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
+'''
+By Dabi Ahn. andabi412@gmail.com.
+https://www.github.com/andabi
+'''
 
 import tensorflow as tf
 from model import Model, load_state, batch_to_spec, spec_to_batch
@@ -25,29 +29,25 @@ def eval():
         writer = tf.summary.FileWriter(EvalConfig.GRAPH_PATH, sess.graph)
 
         data = Data(EvalConfig.DATA_PATH)
-        mixed_wav, src1_wav, src2_wav = data.next_wavs(EvalConfig.NUM_EVAL, sec=EvalConfig.SECONDS)
+        mixed_wav, src1_wav, src2_wav = data.next_wavs(EvalConfig.SECONDS, EvalConfig.NUM_EVAL)
 
-        # TODO refactoring
         mixed_spec = to_spectrogram(mixed_wav)
         mixed_mag = get_magnitude(mixed_spec)
-        mixed_phase = get_phase(mixed_spec)
-        mixed_batched = spec_to_batch(mixed_mag)
+        mixed_batch, mixed_mag = spec_to_batch(mixed_mag)
+        mixed_phase = get_phase(mixed_spec)[:, :, :mixed_mag.shape[-1]]
 
-        pred = sess.run(model(), feed_dict={model.x_mixed: mixed_batched})
+        assert(np.all(np.equal(batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), mixed_mag)))
 
-        # (magnitude, phase) -> spectrogram -> wav
-        pred_src1_mag, pred_src2_mag = pred
+        (pred_src1_mag, pred_src2_mag) = sess.run(model(), feed_dict={model.x_mixed: mixed_batch})
+
         pred_src1_mag = batch_to_spec(pred_src1_mag, EvalConfig.NUM_EVAL)
         pred_src2_mag = batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)
-        mixed_phase = mixed_phase[:, :, :pred_src1_mag.shape[-1]]
 
         # Time-frequency masking
-        # mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
-        # mask_src2 = 1.0 - mask_src1
-        # seq_len = mixed_batched.shape[0] * mixed_batched.shape[1] // EvalConfig.NUM_EVAL
-        # mixed_mag = mixed_mag[:, :, :seq_len]
-        # pred_src1_mag = mixed_mag * mask_src1
-        # pred_src2_mag = mixed_mag * mask_src2
+        mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
+        mask_src2 = 1.0 - mask_src1
+        pred_src1_mag = mixed_mag * mask_src1
+        pred_src2_mag = mixed_mag * mask_src2
 
         # (magnitude, phase) -> spectrogram -> wav
         pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)
@@ -59,16 +59,17 @@ def eval():
         tf.summary.audio('Pred_music', pred_src1_wav, ModelConfig.SR)
         tf.summary.audio('Pred_vocal', pred_src2_wav, ModelConfig.SR)
 
-        # Compute BSS metrics
-        gnsdr, gsir, gsar = bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav)
+        if EvalConfig.EVAL_METRIC:
+            # Compute BSS metrics
+            gnsdr, gsir, gsar = bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav)
 
-        # Write the score of BSS metrics
-        tf.summary.scalar('GNSDR_music', gnsdr[0])
-        tf.summary.scalar('GSIR_music', gsir[0])
-        tf.summary.scalar('GSAR_music', gsar[0])
-        tf.summary.scalar('GNSDR_vocal', gnsdr[1])
-        tf.summary.scalar('GSIR_vocal', gsir[1])
-        tf.summary.scalar('GSAR_vocal', gsar[1])
+            # Write the score of BSS metrics
+            tf.summary.scalar('GNSDR_music', gnsdr[0])
+            tf.summary.scalar('GSIR_music', gsir[0])
+            tf.summary.scalar('GSAR_music', gsar[0])
+            tf.summary.scalar('GNSDR_vocal', gnsdr[1])
+            tf.summary.scalar('GSIR_vocal', gsir[1])
+            tf.summary.scalar('GSAR_vocal', gsar[1])
 
         writer.add_summary(sess.run(tf.summary.merge_all()), global_step=global_step.eval())
 

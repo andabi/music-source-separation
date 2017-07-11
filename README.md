@@ -10,6 +10,11 @@ In this project, I implement a deep neural network model for music source separa
   * 3 RNN layers + 2 dense layer + 2 time-frequency masking layer
 * I used iKala dataset introduced by [1] and MIR-1K dataset which is public together when training.
 
+## Requirements
+* Numpy >= 1.3.0
+* TensorFlow == 1.2
+* librosa
+
 ## Usage
 * config.py: set dataset path appropriately.
 * train.py: run it to train
@@ -130,9 +135,3 @@ Neural Networks](http://mac.citi.sinica.edu.tw/~yang/pub/fan17dlm.pdf)", Proc. o
 2. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Joint Optimization of Masks and Deep Recurrent Neural Networks for Monaural Source Separation](http://paris.cs.illinois.edu/pubs/huang-ismir2014.pdf)", IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 23, no. 12, pp. 2136–2147, Dec. 2015
 3. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks](https://posenhuang.github.io/papers/DRNN_ISMIR2014.pdf)" in International Society for Music Information Retrieval Conference (ISMIR) 2014.
 4. Tohru Nitta, "[A backpropagation algorithm for neural networks based an 3D vector product. In Proc. IJCNN](https://staff.aist.go.jp/tohru-nitta/IJCNN93-VP.pdf)", Proc. of IJCAI, 2007.
-
-<audio controls="controls">
-  <source type="audio/mp3" src="filename.mp3"></source>
-  <source type="audio/ogg" src="filename.ogg"></source>
-  <p>Your browser does not support the audio element.</p>
-</audio>

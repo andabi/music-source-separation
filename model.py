@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
+'''
+By Dabi Ahn. andabi412@gmail.com.
+https://www.github.com/andabi
+'''
 
 from __future__ import division
 import tensorflow as tf
@@ -46,18 +50,25 @@ class Model:
         return tf.reduce_mean(tf.square(self.y_src1 - pred_y_src1) + tf.square(self.y_src2 - pred_y_src2), name='loss')
 
 
-# shape = (B, F, T) => (B, T, F)
+# shape = (batch_size, n_freq, n_frames) => (batch_size, n_frames, n_freq)
 def spec_to_batch(src):
+    num_wavs, freq, n_frames = src.shape
+
+    # Padding
+    pad_len = 0
+    if n_frames % ModelConfig.SEQ_LEN > 0:
+        pad_len = (ModelConfig.SEQ_LEN - (n_frames % ModelConfig.SEQ_LEN))
+    pad_width = ((0, 0), (0, 0), (0, pad_len))
+    padded_src = np.pad(src, pad_width=pad_width, mode='constant', constant_values=0)
+
+    assert(padded_src.shape[-1] % ModelConfig.SEQ_LEN == 0)
+
     src = src.transpose(0, 2, 1)
-    num_wavs, n_frames, freq = src.shape
-
-    assert(n_frames % ModelConfig.BATCH_SIZE == 0)
-
-    src = np.reshape(src, (ModelConfig.BATCH_SIZE, -1, freq))
-    return src
+    batch = np.reshape(src, (-1, ModelConfig.SEQ_LEN, freq))
+    return batch, padded_src
 
 
-# shape = (B, T, F) => (B, F, T)
+# shape = (batch_size, n_frames, n_freq) => (batch_size, n_freq, n_frames)
 def batch_to_spec(pred_src, num_wav):
     batch_size, seq_len, freq = pred_src.shape
     pred_src = np.reshape(pred_src, (num_wav, -1, freq))

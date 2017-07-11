@@ -1,49 +1,36 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
+'''
+By Dabi Ahn. andabi412@gmail.com.
+https://www.github.com/andabi
+'''
 
 import librosa
 import numpy as np
 from config import ModelConfig
 
 
-# TODO refactoring. split below
-# 1. pad zero with max len is sr * max_duration
-# 2. n_frames % batch_size = 0
-def _resize_wav(wav, sr, duration):
+def _pad_wav(wav, sr, duration):
     assert(wav.ndim <= 2)
 
     n_samples = sr * duration
     if wav.ndim == 1:
         pad_width = (0, n_samples - wav.shape[-1])
-        wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
     else:
         pad_width = ((0, 0), (0, n_samples - wav.shape[-1]))
-        wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
+    wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
 
-    unit = ModelConfig.L_FRAME * ModelConfig.BATCH_SIZE
-    pad_len = 0
-    if n_samples % unit > 0:
-        pad_len = (unit - (n_samples % unit))
-
-    if wav.ndim == 1:
-        pad_width = (0, pad_len)
-        wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
-        wav = wav[:wav.shape[-1] - ModelConfig.L_HOP]
-    else:
-        pad_width = ((0, 0), (0, pad_len))
-        wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
-        wav = wav[:, :wav.shape[-1] - ModelConfig.L_HOP]
     return wav
 
 
 # Batch considered
-def get_mixed_wav(filenames, sr=ModelConfig.SR, sec=ModelConfig.MAX_SECONDS):
-    return np.array(map(lambda f: _resize_wav(librosa.load(f, sr=sr, mono=True, duration=sec)[0], sr, sec), filenames))
+def get_mixed_wav(filenames, sec, sr=ModelConfig.SR):
+    return np.array(map(lambda f: _pad_wav(librosa.load(f, sr=sr, mono=True, duration=sec)[0], sr, sec), filenames))
 
 
 # Batch considered
-def get_src1_src2_wav(filenames, sr=ModelConfig.SR, sec=ModelConfig.MAX_SECONDS):
-    wav = np.array(map(lambda f: _resize_wav(librosa.load(f, sr=sr, mono=False, duration=sec)[0], sr, sec), filenames))
+def get_src1_src2_wav(filenames, sec, sr=ModelConfig.SR):
+    wav = np.array(map(lambda f: _pad_wav(librosa.load(f, sr=sr, mono=False, duration=sec)[0], sr, sec), filenames))
     return wav[:, 0], wav[:, 1]
 
 

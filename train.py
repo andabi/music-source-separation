@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
+'''
+By Dabi Ahn. andabi412@gmail.com.
+https://www.github.com/andabi
+'''
 
 import tensorflow as tf
 from model import Model, load_state, spec_to_batch
@@ -41,7 +45,7 @@ def train():
         data = Data(TrainConfig.DATA_PATH)
         loss = Diff()
         for step in range(global_step.eval(), TrainConfig.FINAL_STEP):
-            mixed_wav, src1_wav, src2_wav = data.next_wavs(1)
+            mixed_wav, src1_wav, src2_wav = data.next_wavs(TrainConfig.SECONDS, 1)
 
             mixed_spec = to_spectrogram(mixed_wav)
             mixed_mag = get_magnitude(mixed_spec)
@@ -49,11 +53,12 @@ def train():
             src1_spec, src2_spec = to_spectrogram(src1_wav), to_spectrogram(src2_wav)
             src1_mag, src2_mag = get_magnitude(src1_spec), get_magnitude(src2_spec)
 
-            src1, src2 = spec_to_batch(src1_mag), spec_to_batch(src2_mag)
-            mixed = spec_to_batch(mixed_mag)
+            src1_batch, src1_mag = spec_to_batch(src1_mag)
+            src2_batch, src1_mag = spec_to_batch(src2_mag)
+            mixed_batch, mixed_mag = spec_to_batch(mixed_mag)
 
             l, _, summary = sess.run([loss_fn, optimizer, summary_op],
-                                     feed_dict={model.x_mixed: mixed, model.y_src1: src1, model.y_src2: src2})
+                                     feed_dict={model.x_mixed: mixed_batch, model.y_src1: src1_batch, model.y_src2: src2_batch})
 
             loss.update(l)
             print('step-{}\td_loss={:2.2f}\tloss={}'.format(step, loss.diff * 100, loss.value))
