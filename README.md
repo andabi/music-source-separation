@@ -1,4 +1,9 @@
 # Deep Neural Network for Music Source Separation in Tensorflow
+
+>__This work is from [Jeju Machine Learning Camp 2017](http://mlcampjeju.kakao.com)__
+>* Co-author: Mark Kwon (hjkwon0609@gmail.com)
+>* Final work will be done in Jeju ML Camp. Please check https://github.com/hjkwon0609/source_separation_ml_jeju
+
 ## Intro
 Recently, deep neural networks have been used in numerous fields and improved quality of many tasks in the fields. 
 Applying deep neural nets to MIR(Music Information Retrieval) tasks also provided us quantum performance improvement.
@@ -13,13 +18,16 @@ In this project, I implement a deep neural network model for music source separa
 ## Requirements
 * Numpy >= 1.3.0
 * TensorFlow == 1.2
-* librosa
+* librosa == 0.5.1
 
 ## Usage
-* config.py: set dataset path appropriately.
-* train.py: run it to train
+* Configuration
+  * config.py: set dataset path appropriately.
+* Training
+  * ```python train.py```
   * check the loss graph in Tensorboard.
-* eval.py: run it to test
+* Evaluation
+  * ``` python eval.py```
   * check the result in Tensorboard (audio tab).
 
 # \[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014) <sup>\[3\]</sup>
@@ -68,15 +76,15 @@ In this project, I implement a deep neural network model for music source separa
   * To enrich context, previous and next frames are concatenated to current frame.
 ### Evaluation Metric
 * [BSS-EVAL 3.0 metrics](https://hal.inria.fr/inria-00544230/document) are used.
-* (<b>v'</b> = estimated voice, <b>v</b> = ground truth voice, <b>m</b> = ground truth music, <b>x</b> = the mixture)
+* (__v'__ = estimated voice, __v__ = ground truth voice, __m__ = ground truth music, __x__ = the mixture)
   * Source to Distortion Ratio (SDR) or GSDR(length weighted)
-    * SDR(<b>v</b>) = how similar <b>v'</b> with <b>v</b>?
+    * SDR(__v__) = how similar __v'__ with __v__?
   * Source to Interferences Ratio (SIR) or GSIR(length weighted)
-    * SIR(<b>v</b>) = how discriminative <b>v'</b> with <b>m</b>?
+    * SIR(__v__) = how discriminative __v'__ with __m__?
   * Sources to Artifacts Ratio (SAR) or GSAR(length weighted)
   * NSDR(Normalized SDR) or GNSDR(length weighted)
     * SDR improvement between the estimated voice and the mixture.
-    * SDR(<b>v'</b>, <b>v</b>) - SDR(<b>x</b>, <b>v</b>)
+    * SDR(__v'__, __v__) - SDR(__x__, __v__)
 ### Results
 * The proposed neural network models achieve 2.30-2.48 dB GNSDR gain, 4.32-5.42 dB GSIR gain with similar GSAR performance, compared with conventional approaches. (quantum jump!!!)
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result3.png" width="50%"></p>
