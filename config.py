@@ -22,7 +22,7 @@ class TrainConfig:
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/train'
     DATA_PATH = 'dataset/ikala'
-    LR = 0.00005
+    LR = 0.0001
     FINAL_STEP = 100000
     CKPT_STEP = 100
     SECONDS = 30
