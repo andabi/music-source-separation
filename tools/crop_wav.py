@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 #!/usr/bin/env python
+'''
+By Dabi Ahn. andabi412@gmail.com.
+https://www.github.com/andabi
+'''
 
 import librosa
 

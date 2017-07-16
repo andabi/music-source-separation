@@ -22,4 +22,4 @@ class Data:
         wavfiles = random.sample(wavfiles, size)
         mixed = get_mixed_wav(wavfiles, sec, ModelConfig.SR)
         src1, src2 = get_src1_src2_wav(wavfiles, sec, ModelConfig.SR)
-        return mixed, src1, src2
+        return mixed, src1, src2, wavfiles

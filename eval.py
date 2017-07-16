@@ -29,7 +29,7 @@ def eval():
         writer = tf.summary.FileWriter(EvalConfig.GRAPH_PATH, sess.graph)
 
         data = Data(EvalConfig.DATA_PATH)
-        mixed_wav, src1_wav, src2_wav = data.next_wavs(EvalConfig.SECONDS, EvalConfig.NUM_EVAL)
+        mixed_wav, src1_wav, src2_wav, wavfiles = data.next_wavs(EvalConfig.SECONDS, EvalConfig.NUM_EVAL)
 
         mixed_spec = to_spectrogram(mixed_wav)
         mixed_mag = get_magnitude(mixed_spec)
@@ -71,9 +71,24 @@ def eval():
             tf.summary.scalar('GSIR_vocal', gsir[1])
             tf.summary.scalar('GSAR_vocal', gsar[1])
 
+        if EvalConfig.WRITE_RESULT:
+            # Write the result
+            for i in range(len(wavfiles)):
+                name = wavfiles[i].replace('/', '-').replace('.wav', '')
+                write_result(name, mixed_wav[i], pred_src1_wav[i], pred_src2_wav[i])
+
         writer.add_summary(sess.run(tf.summary.merge_all()), global_step=global_step.eval())
 
         writer.close()
+
+
+def write_result(name, mixed, src1, src2):
+    librosa.output.write_wav('{}/{}-{}.wav'.format(EvalConfig.RESULT_PATH, name, 'original'), mixed,
+                             ModelConfig.SR)
+    librosa.output.write_wav('{}/{}-{}.wav'.format(EvalConfig.RESULT_PATH, name, 'music'), src1,
+                             ModelConfig.SR)
+    librosa.output.write_wav('{}/{}-{}.wav'.format(EvalConfig.RESULT_PATH, name, 'vocal'), src2,
+                             ModelConfig.SR)
 
 
 def bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav):
@@ -103,6 +118,8 @@ def setup_path():
     if EvalConfig.RE_EVAL:
         if os.path.exists(EvalConfig.GRAPH_PATH):
             shutil.rmtree(EvalConfig.GRAPH_PATH)
+        if os.path.exists(EvalConfig.RESULT_PATH):
+            shutil.rmtree(EvalConfig.RESULT_PATH)
 
     if not os.path.exists(EvalConfig.RESULT_PATH):
         os.makedirs(EvalConfig.RESULT_PATH)

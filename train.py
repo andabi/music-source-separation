@@ -45,7 +45,7 @@ def train():
         data = Data(TrainConfig.DATA_PATH)
         loss = Diff()
         for step in range(global_step.eval(), TrainConfig.FINAL_STEP):
-            mixed_wav, src1_wav, src2_wav = data.next_wavs(TrainConfig.SECONDS, 1)
+            mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, 1)
 
             mixed_spec = to_spectrogram(mixed_wav)
             mixed_mag = get_magnitude(mixed_spec)
