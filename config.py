@@ -18,14 +18,14 @@ class ModelConfig:
 
 # Train
 class TrainConfig:
-    CASE = '1frame'
+    CASE = 'ikala+kpop'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/train'
-    DATA_PATH = 'dataset/ikala'
+    DATA_PATH = 'dataset/train'
     LR = 0.0001
     FINAL_STEP = 100000
-    CKPT_STEP = 100
-    SECONDS = 30
+    CKPT_STEP = 500
+    SECONDS = 60
     RE_TRAIN = False
     session_conf = tf.ConfigProto(
         device_count={'CPU': 1, 'GPU': 1},
@@ -34,7 +34,7 @@ class TrainConfig:
 
 # Eval
 class EvalConfig:
-    CASE = '1frame'
+    CASE = 'ikala+kpop'
     # CASE = '4-frames-masking-layer'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'

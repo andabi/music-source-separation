@@ -21,3 +21,12 @@ class Diff(object):
 def shape(tensor):
     s = tensor.get_shape()
     return tuple([s[i].value for i in range(0, len(s))])
+
+
+# TODO general pretty print
+def pretty_list(list):
+    return ', '.join(list)
+
+
+def pretty_dict(dict):
+    return '\n'.join('{} : {}'.format(k, v) for k, v in dict.items())
