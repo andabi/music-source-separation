@@ -37,7 +37,7 @@ def to_wav_from_spec(stft_maxrix, len_hop=ModelConfig.L_HOP):
 
 # Batch considered
 def to_wav_mag_only(mag, init_phase, len_frame=ModelConfig.L_FRAME, len_hop=ModelConfig.L_HOP, num_iters=50):
-    return np.array(map(lambda (m, p): griffin_lim(m, p, len_frame, len_hop, num_iters=num_iters), zip(mag, init_phase)))
+    return np.array(map(lambda (m, p): griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p), zip(mag, init_phase)))
 
 
 # Batch considered
@@ -67,16 +67,18 @@ def time_freq_mask(target_src, remaining_src):
     return mask
 
 
-def griffin_lim(mag, phase_angle, len_frame, len_hop, num_iters):
+def griffin_lim(mag, len_frame, len_hop, num_iters, phase_angle=None):
     assert(num_iters > 0)
+    if phase_angle is None:
+        phase_angle = np.pi * np.random.rand(*mag.shape)
     spec = get_stft_matrix(mag, phase_angle)
     for i in range(num_iters):
         wav = librosa.istft(spec, win_length=len_frame, hop_length=len_hop)
         if i != num_iters - 1:
-          spec = librosa.stft(wav, n_fft=len_frame, win_length=len_frame, hop_length=len_hop)
-          _, phase = librosa.magphase(spec)
-          phase_angle = np.angle(phase)
-          spec = get_stft_matrix(mag, phase_angle)
+            spec = librosa.stft(wav, n_fft=len_frame, win_length=len_frame, hop_length=len_hop)
+            _, phase = librosa.magphase(spec)
+            phase_angle = np.angle(phase)
+            spec = get_stft_matrix(mag, phase_angle)
     return wav
 
 

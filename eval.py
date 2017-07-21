@@ -51,10 +51,8 @@ def eval():
 
         # (magnitude, phase) -> spectrogram -> wav
         if EvalConfig.MAG_ONLY:
-            # init_phase = np.pi * np.random.rand(*pred_src1_mag.shape)
-            init_phase = mixed_phase
-            pred_src1_wav = to_wav_mag_only(pred_src1_mag, init_phase=init_phase, num_iters=50)
-            pred_src2_wav = to_wav_mag_only(pred_src2_mag, init_phase=init_phase, num_iters=50)
+            pred_src1_wav = to_wav_mag_only(pred_src1_mag, init_phase=mixed_phase, num_iters=50)
+            pred_src2_wav = to_wav_mag_only(pred_src2_mag, init_phase=mixed_phase, num_iters=50)
         else:
             pred_src1_wav = to_wav(pred_src1_mag, mixed_phase)
             pred_src2_wav = to_wav(pred_src2_mag, mixed_phase)
