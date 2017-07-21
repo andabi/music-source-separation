@@ -14,6 +14,7 @@ In this project, I implement a deep neural network model for music source separa
 * I used Posen's deep recurrent neural network(RNN) model [2, 3].
   * 3 RNN layers + 2 dense layer + 2 time-frequency masking layer
 * I used iKala dataset introduced by [1] and MIR-1K dataset which is public together when training.
+* I used Griffin Lim reconstruction to inverse stft matrix to waveform without phase spectra of the mixture.
 
 ## Requirements
 * Numpy >= 1.3.0

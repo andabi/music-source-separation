@@ -8,7 +8,7 @@ https://www.github.com/andabi
 import random
 from os import walk
 from config import ModelConfig
-from preprocess import get_mixed_wav, get_src1_src2_wav
+from preprocess import get_random_wav
 
 
 class Data:
@@ -20,6 +20,5 @@ class Data:
         for (root, dirs, files) in walk(self.path):
             wavfiles.extend(['{}/{}'.format(root, f) for f in files if f.endswith(".wav")])
         wavfiles = random.sample(wavfiles, size)
-        mixed = get_mixed_wav(wavfiles, sec, ModelConfig.SR)
-        src1, src2 = get_src1_src2_wav(wavfiles, sec, ModelConfig.SR)
+        mixed, src1, src2 = get_random_wav(wavfiles, sec, ModelConfig.SR)
         return mixed, src1, src2, wavfiles

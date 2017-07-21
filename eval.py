@@ -50,14 +50,19 @@ def eval():
         pred_src2_mag = mixed_mag * mask_src2
 
         # (magnitude, phase) -> spectrogram -> wav
-        pred_src1_spec = get_stft_matrix(pred_src1_mag, mixed_phase)
-        pred_src2_spec = get_stft_matrix(pred_src2_mag, mixed_phase)
-        pred_src1_wav, pred_src2_wav = to_wav(pred_src1_spec), to_wav(pred_src2_spec)
+        if EvalConfig.MAG_ONLY:
+            # init_phase = np.pi * np.random.rand(*pred_src1_mag.shape)
+            init_phase = mixed_phase
+            pred_src1_wav = to_wav_mag_only(pred_src1_mag, init_phase=init_phase, num_iters=50)
+            pred_src2_wav = to_wav_mag_only(pred_src2_mag, init_phase=init_phase, num_iters=50)
+        else:
+            pred_src1_wav = to_wav(pred_src1_mag, mixed_phase)
+            pred_src2_wav = to_wav(pred_src2_mag, mixed_phase)
 
         # Write the result
-        tf.summary.audio('GT_mixed', mixed_wav, ModelConfig.SR)
-        tf.summary.audio('Pred_music', pred_src1_wav, ModelConfig.SR)
-        tf.summary.audio('Pred_vocal', pred_src2_wav, ModelConfig.SR)
+        tf.summary.audio('GT_mixed', mixed_wav, ModelConfig.SR, max_outputs=EvalConfig.NUM_EVAL)
+        tf.summary.audio('Pred_music', pred_src1_wav, ModelConfig.SR, max_outputs=EvalConfig.NUM_EVAL)
+        tf.summary.audio('Pred_vocal', pred_src2_wav, ModelConfig.SR, max_outputs=EvalConfig.NUM_EVAL)
 
         if EvalConfig.EVAL_METRIC:
             # Compute BSS metrics

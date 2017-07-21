@@ -5,6 +5,8 @@ By Dabi Ahn. andabi412@gmail.com.
 https://www.github.com/andabi
 '''
 
+from __future__ import division
+
 
 class Diff(object):
     def __init__(self, v=0.):

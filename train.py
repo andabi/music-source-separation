@@ -45,7 +45,7 @@ def train():
         data = Data(TrainConfig.DATA_PATH)
         loss = Diff()
         for step in range(global_step.eval(), TrainConfig.FINAL_STEP):
-            mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, 1)
+            mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, TrainConfig.NUM_WAVFILE)
 
             mixed_spec = to_spectrogram(mixed_wav)
             mixed_mag = get_magnitude(mixed_spec)
@@ -87,5 +87,6 @@ if __name__ == '__main__':
     # (https://www.tensorflow.org/tutorials/deep_cnn#training_a_model_using_multiple_gpu_cards)
     # (https://www.tensorflow.org/tutorials/using_gpu#allowing_gpu_memory_growth)
     # TODO queue
+    # TODO parellel
     setup_path()
     train()

@@ -6,34 +6,29 @@ https://www.github.com/andabi
 '''
 
 import cPickle as pickle
-import sys
 from pydub import AudioSegment
 import os
 import glob
 import librosa
 import numpy as np
 from utils import pretty_dict
+import pprint
 
 META_PATH = '/avin.hero/mss/dataset/kpop/meta.cPickle'
 ARTIST_ATTR = 'artist_name_clean_exact'
 SONG_ATTR = 'song_name_clean_exact'
 
-SONG_NAME = '마지막인사'
-ARTIST_NAME = ''
+SONG_NAME = ''
+ARTIST_NAME = '샤이니'
 SOURCE_PATH = '/avin.hero/mss/dataset/kpop/mpre12k/mp3'
 TARGET_PATH = '/avin.hero/mss/dataset/train/kpop'
 WAV_TEMP_PATH = '/avin.hero/mss/dataset/train/melon_temp'
 
-# Set encoding to utf-8
-reload(sys)
-sys.setdefaultencoding('UTF8')
-
 # Load metadata file
-meta = pickle.load(open(META_PATH, "rb"))
-
+meta = pickle.load(open(META_PATH, "rb"))  # EUC-KR
 
 ########################################################################################################################
-# Show meta
+# Display meta
 ########################################################################################################################
 
 # Show artist list
@@ -73,11 +68,13 @@ def by_inst(value_dict, is_inst=True):
 
 # Query songs
 songs = query_by_song_artist(meta, SONG_NAME, ARTIST_NAME)
+song_title_dict = dict(map(lambda (k, v): (k, v[SONG_ATTR]), songs.items()))
+print(pretty_dict(song_title_dict))
 
 # Query Inst. songs
 inst_songs = query_by_inst(meta)
 # print(len(songs))
-# print('\n'.join('{} : {}'.format(key, value) for key, value in songs.items()))
+# print(pretty_dict(songs))
 
 # Search corresponding original song from inst. song
 pair = dict()
@@ -89,7 +86,6 @@ for k_inst, v_inst in inst_songs.items():
                 and by_inst(v, False)
                 and by_song_length(v, song_length)]
     pair[k_inst] = original
-# TODO encoding
 # print(pretty_dict(pair))
 
 
@@ -98,41 +94,41 @@ for k_inst, v_inst in inst_songs.items():
 ########################################################################################################################
 
 # Necessary libraries: ffmpeg, libav
-def convert_mp3_to_wav(source_path, target_path):
-    basepath, filename = os.path.split(source_path)
-    os.chdir(basepath)
-    AudioSegment.from_mp3(source_path).export(target_path, format='wav')
-
-sources = []
-original_song_list = sum(pair.itervalues(), [])
-inst_song_list = list(inst_songs.itervalues())
-sources.extend(original_song_list)
-sources.extend(inst_songs)
-for s in sources:
-    search_path = '{}/*/*/{}.mp3'.format(SOURCE_PATH, s)
-    for source_path in glob.glob(search_path):
-        target_path = '{}/{}.wav'.format(WAV_TEMP_PATH, s)
-        convert_mp3_to_wav(source_path, target_path)
+# def convert_mp3_to_wav(source_path, target_path):
+#     basepath, filename = os.path.split(source_path)
+#     os.chdir(basepath)
+#     AudioSegment.from_mp3(source_path).export(target_path, format='wav')
+#
+# sources = []
+# original_song_list = sum(pair.itervalues(), [])
+# inst_song_list = list(inst_songs.itervalues())
+# sources.extend(original_song_list)
+# sources.extend(inst_songs)
+# for s in sources:
+#     search_path = '{}/*/*/{}.mp3'.format(SOURCE_PATH, s)
+#     for source_path in glob.glob(search_path):
+#         target_path = '{}/{}.wav'.format(WAV_TEMP_PATH, s)
+#         convert_mp3_to_wav(source_path, target_path)
 
 
 ########################################################################################################################
 # Create 2-channel wav
 ########################################################################################################################
 
-for inst, originals in pair.iteritems():
-    if not originals:
-        continue
-    else:
-        orig = originals[0]
-        inst_path = '{}/{}.wav'.format(WAV_TEMP_PATH, inst)
-        orig_path = '{}/{}.wav'.format(WAV_TEMP_PATH, orig)
-        inst_data, sr = librosa.load(inst_path, mono=True, duration=60)
-        orig_data, sr = librosa.load(orig_path, mono=True, duration=60)
-
-        assert(len(inst_data) == len(orig_data))
-
-        vocal_data = orig_data - inst_data
-        mixed = np.array([inst_data, vocal_data])
-        song_name = inst_songs[inst][SONG_ATTR]
-        mixed_path = '{}/{}.wav'.format(TARGET_PATH, song_name)
-        librosa.output.write_wav(mixed_path, mixed, sr)
+# for inst, originals in pair.iteritems():
+#     if not originals:
+#         continue
+#     else:
+#         orig = originals[0]
+#         inst_path = '{}/{}.wav'.format(WAV_TEMP_PATH, inst)
+#         orig_path = '{}/{}.wav'.format(WAV_TEMP_PATH, orig)
+#         inst_data, sr = librosa.load(inst_path, mono=True, duration=60)
+#         orig_data, sr = librosa.load(orig_path, mono=True, duration=60)
+#
+#         assert(len(inst_data) == len(orig_data))
+#
+#         vocal_data = orig_data - inst_data
+#         mixed = np.array([inst_data, vocal_data])
+#         song_name = inst_songs[inst][SONG_ATTR]
+#         mixed_path = '{}/{}.wav'.format(TARGET_PATH, song_name)
+#         librosa.output.write_wav(mixed_path, mixed, sr)

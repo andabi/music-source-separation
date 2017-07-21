@@ -10,28 +10,13 @@ import numpy as np
 from config import ModelConfig
 
 
-def _pad_wav(wav, sr, duration):
-    assert(wav.ndim <= 2)
-
-    n_samples = sr * duration
-    if wav.ndim == 1:
-        pad_width = (0, n_samples - wav.shape[-1])
-    else:
-        pad_width = ((0, 0), (0, n_samples - wav.shape[-1]))
-    wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
-
-    return wav
-
-
 # Batch considered
-def get_mixed_wav(filenames, sec, sr=ModelConfig.SR):
-    return np.array(map(lambda f: _pad_wav(librosa.load(f, sr=sr, mono=True, duration=sec)[0], sr, sec), filenames))
-
-
-# Batch considered
-def get_src1_src2_wav(filenames, sec, sr=ModelConfig.SR):
-    wav = np.array(map(lambda f: _pad_wav(librosa.load(f, sr=sr, mono=False, duration=sec)[0], sr, sec), filenames))
-    return wav[:, 0], wav[:, 1]
+def get_random_wav(filenames, sec, sr=ModelConfig.SR):
+    src1_src2 = map(lambda f: _sample_range(_pad_wav(librosa.load(f, sr=sr, mono=False)[0], sr, sec), sr, sec), filenames)
+    mixed = np.array(map(lambda f: librosa.to_mono(f), src1_src2))
+    src1_src2 = np.array(src1_src2)
+    src1, src2 = src1_src2[:, 0], src1_src2[:, 1]
+    return mixed, src1, src2
 
 
 # Batch considered
@@ -40,8 +25,19 @@ def to_spectrogram(wav, len_frame=ModelConfig.L_FRAME, len_hop=ModelConfig.L_HOP
 
 
 # Batch considered
-def to_wav(stft_maxrix, len_hop=ModelConfig.L_HOP):
+def to_wav(mag, phase, len_hop=ModelConfig.L_HOP):
+    stft_maxrix = get_stft_matrix(mag, phase)
     return np.array(map(lambda s: librosa.istft(s, hop_length=len_hop), stft_maxrix))
+
+
+# Batch considered
+def to_wav_from_spec(stft_maxrix, len_hop=ModelConfig.L_HOP):
+    return np.array(map(lambda s: librosa.istft(s, hop_length=len_hop), stft_maxrix))
+
+
+# Batch considered
+def to_wav_mag_only(mag, init_phase, len_frame=ModelConfig.L_FRAME, len_hop=ModelConfig.L_HOP, num_iters=50):
+    return np.array(map(lambda (m, p): griffin_lim(m, p, len_frame, len_hop, num_iters=num_iters), zip(mag, init_phase)))
 
 
 # Batch considered
@@ -62,10 +58,51 @@ def get_phase(stft_maxtrixes):
 
 # Batch considered
 def get_stft_matrix(magnitudes, phases):
-    return magnitudes * np.exp(1j * phases)
+    return magnitudes * np.exp(1.j * phases)
 
 
 # Batch considered
 def time_freq_mask(target_src, remaining_src):
     mask = np.abs(target_src) / (np.abs(target_src) + np.abs(remaining_src) + np.finfo(float).eps)
     return mask
+
+
+def griffin_lim(mag, phase_angle, len_frame, len_hop, num_iters):
+    assert(num_iters > 0)
+    spec = get_stft_matrix(mag, phase_angle)
+    for i in range(num_iters):
+        wav = librosa.istft(spec, win_length=len_frame, hop_length=len_hop)
+        if i != num_iters - 1:
+          spec = librosa.stft(wav, n_fft=len_frame, win_length=len_frame, hop_length=len_hop)
+          _, phase = librosa.magphase(spec)
+          phase_angle = np.angle(phase)
+          spec = get_stft_matrix(mag, phase_angle)
+    return wav
+
+
+def _pad_wav(wav, sr, duration):
+    assert(wav.ndim <= 2)
+
+    n_samples = sr * duration
+    pad_len = np.maximum(0, n_samples - wav.shape[-1])
+    if wav.ndim == 1:
+        pad_width = (0, pad_len)
+    else:
+        pad_width = ((0, 0), (0, pad_len))
+    wav = np.pad(wav, pad_width=pad_width, mode='constant', constant_values=0)
+
+    return wav
+
+
+def _sample_range(wav, sr, duration):
+    assert(wav.ndim <= 2)
+
+    target_len = sr * duration
+    wav_len = wav.shape[-1]
+    start = np.random.choice(range(np.maximum(1, wav_len - target_len)), 1)[0]
+    end = start + target_len
+    if wav.ndim == 1:
+        wav = wav[start:end]
+    else:
+        wav = wav[:, start:end]
+    return wav

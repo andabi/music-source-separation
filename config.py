@@ -18,14 +18,15 @@ class ModelConfig:
 
 # Train
 class TrainConfig:
-    CASE = 'ikala+kpop'
+    CASE = 'ikala_kpop'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/train'
     DATA_PATH = 'dataset/train'
     LR = 0.0001
     FINAL_STEP = 100000
     CKPT_STEP = 500
-    SECONDS = 60
+    NUM_WAVFILE = 1
+    SECONDS = 30
     RE_TRAIN = False
     session_conf = tf.ConfigProto(
         device_count={'CPU': 1, 'GPU': 1},
@@ -34,15 +35,16 @@ class TrainConfig:
 
 # Eval
 class EvalConfig:
-    CASE = 'ikala+kpop'
+    CASE = 'ikala_kpop'
     # CASE = '4-frames-masking-layer'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
     DATA_PATH = 'dataset/eval/kpop'
     # DATA_PATH = 'dataset/mir-1k/Wavfile'
     # DATA_PATH = 'dataset/ikala'
+    MAG_ONLY = True
     NUM_EVAL = 2
-    SECONDS = 30
+    SECONDS = 15
     RE_EVAL = True
     EVAL_METRIC = False
     WRITE_RESULT = False
