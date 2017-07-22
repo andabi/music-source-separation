@@ -16,7 +16,7 @@ from config import EvalConfig, ModelConfig
 from data import Data
 from mir_eval.separation import bss_eval_sources
 from model import Model
-from preprocess import to_spectrogram, get_magnitude, get_phase, to_wav_mag_only, time_freq_mask, to_wav
+from preprocess import to_spectrogram, get_magnitude, get_phase, to_wav_mag_only, soft_time_freq_mask, hard_time_freq_mask, to_wav
 
 
 def eval():
@@ -48,15 +48,16 @@ def eval():
         pred_src2_mag = model.batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)
 
         # Time-frequency masking
-        mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
-        mask_src2 = 1.0 - mask_src1
+        mask_src1 = soft_time_freq_mask(pred_src1_mag, pred_src2_mag)
+        # mask_src1 = hard_time_freq_mask(pred_src1_mag, pred_src2_mag)
+        mask_src2 = 1. - mask_src1
         pred_src1_mag = mixed_mag * mask_src1
         pred_src2_mag = mixed_mag * mask_src2
 
         # (magnitude, phase) -> spectrogram -> wav
-        if EvalConfig.MAG_ONLY:
-            pred_src1_wav = to_wav_mag_only(pred_src1_mag, init_phase=mixed_phase, num_iters=50)
-            pred_src2_wav = to_wav_mag_only(pred_src2_mag, init_phase=mixed_phase, num_iters=50)
+        if EvalConfig.GRIFFIN_LIM:
+            pred_src1_wav = to_wav_mag_only(pred_src1_mag, init_phase=mixed_phase, num_iters=EvalConfig.GRIFFIN_LIM_ITER)
+            pred_src2_wav = to_wav_mag_only(pred_src2_mag, init_phase=mixed_phase, num_iters=EvalConfig.GRIFFIN_LIM_ITER)
         else:
             pred_src1_wav = to_wav(pred_src1_mag, mixed_phase)
             pred_src2_wav = to_wav(pred_src2_mag, mixed_phase)

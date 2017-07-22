@@ -38,7 +38,7 @@ meta = pickle.load(open(META_PATH, "rb"))  # EUC-KR
 ########################################################################################################################
 
 SONG_NAME = ''
-ARTIST_NAME = '아이유'
+ARTIST_NAME = '볼빨간사춘기'
 
 
 def query_by_song_artist(meta, song_name=None, artist_name=None):

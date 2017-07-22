@@ -7,7 +7,7 @@ https://www.github.com/andabi
 
 import tensorflow as tf
 
-
+# TODO tf arg
 # Model
 class ModelConfig:
     SR = 16000
@@ -39,15 +39,16 @@ class TrainConfig:
 
 # Eval
 class EvalConfig:
-    CASE = 'ikala_kpop'
-    # CASE = '4-frames-masking-layer'
+    # CASE = 'ikala_kpop'
+    CASE = '32frames_ikala_kpop'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
     DATA_PATH = 'dataset/eval/kpop'
     # DATA_PATH = 'dataset/mir-1k/Wavfile'
     # DATA_PATH = 'dataset/ikala'
-    MAG_ONLY = True
-    NUM_EVAL = 5
+    GRIFFIN_LIM = False
+    GRIFFIN_LIM_ITER = 1000
+    NUM_EVAL = 3
     SECONDS = 30
     RE_EVAL = True
     EVAL_METRIC = False

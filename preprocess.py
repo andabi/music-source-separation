@@ -62,8 +62,14 @@ def get_stft_matrix(magnitudes, phases):
 
 
 # Batch considered
-def time_freq_mask(target_src, remaining_src):
+def soft_time_freq_mask(target_src, remaining_src):
     mask = np.abs(target_src) / (np.abs(target_src) + np.abs(remaining_src) + np.finfo(float).eps)
+    return mask
+
+
+# Batch considered
+def hard_time_freq_mask(target_src, remaining_src):
+    mask = np.where(target_src > remaining_src, 1., 0.)
     return mask
 
 
