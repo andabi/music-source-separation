@@ -63,8 +63,8 @@ def spec_to_batch(src):
 
     assert(padded_src.shape[-1] % ModelConfig.SEQ_LEN == 0)
 
-    src = src.transpose(0, 2, 1)
-    batch = np.reshape(src, (-1, ModelConfig.SEQ_LEN, freq))
+    padded_src = padded_src.transpose(0, 2, 1)
+    batch = np.reshape(padded_src, (-1, ModelConfig.SEQ_LEN, freq))
     return batch, padded_src
 
 

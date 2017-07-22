@@ -5,8 +5,8 @@ By Dabi Ahn. andabi412@gmail.com.
 https://www.github.com/andabi
 '''
 
+import audio_utils
 import cPickle as pickle
-from pydub import AudioSegment
 import os
 import glob
 import librosa
@@ -17,12 +17,6 @@ import pprint
 META_PATH = '/avin.hero/mss/dataset/kpop/meta.cPickle'
 ARTIST_ATTR = 'artist_name_clean_exact'
 SONG_ATTR = 'song_name_clean_exact'
-
-SONG_NAME = ''
-ARTIST_NAME = '샤이니'
-SOURCE_PATH = '/avin.hero/mss/dataset/kpop/mpre12k/mp3'
-TARGET_PATH = '/avin.hero/mss/dataset/train/kpop'
-WAV_TEMP_PATH = '/avin.hero/mss/dataset/train/melon_temp'
 
 # Load metadata file
 meta = pickle.load(open(META_PATH, "rb"))  # EUC-KR
@@ -42,6 +36,10 @@ meta = pickle.load(open(META_PATH, "rb"))  # EUC-KR
 ########################################################################################################################
 # Query songs by condition
 ########################################################################################################################
+
+SONG_NAME = ''
+ARTIST_NAME = '아이유'
+
 
 def query_by_song_artist(meta, song_name=None, artist_name=None):
     return dict((k, v) for k, v in meta.iteritems() if by_song_artist(v, song_name, artist_name))
@@ -76,52 +74,66 @@ inst_songs = query_by_inst(meta)
 # print(len(songs))
 # print(pretty_dict(songs))
 
+
+########################################################################################################################
 # Search corresponding original song from inst. song
-pair = dict()
-for k_inst, v_inst in inst_songs.items():
-    song_name = v_inst[SONG_ATTR]
-    artist_name = v_inst[ARTIST_ATTR][0]
-    song_length = v_inst['song_length']
-    original = [k for k, v in meta.iteritems() if by_song_artist(v, song_name, artist_name)
-                and by_inst(v, False)
-                and by_song_length(v, song_length)]
-    pair[k_inst] = original
+########################################################################################################################
+
+# pair = dict()
+# for k_inst, v_inst in inst_songs.items():
+#     song_name = v_inst[SONG_ATTR]
+#     artist_name = v_inst[ARTIST_ATTR][0]
+#     song_length = v_inst['song_length']
+#     original = [k for k, v in meta.iteritems() if by_song_artist(v, song_name, artist_name)
+#                 and by_inst(v, False)
+#                 and by_song_length(v, song_length)]
+#     pair[k_inst] = original
 # print(pretty_dict(pair))
 
 
 ########################################################################################################################
-# Convert mp3 to wav
+# Write songs
 ########################################################################################################################
 
-# Necessary libraries: ffmpeg, libav
-# def convert_mp3_to_wav(source_path, target_path):
-#     basepath, filename = os.path.split(source_path)
-#     os.chdir(basepath)
-#     AudioSegment.from_mp3(source_path).export(target_path, format='wav')
-#
-# sources = []
+SOURCE_PATH = '/avin.hero/mss/dataset/kpop/mpre12k/mp3'
+TARGET_PATH = '/avin.hero/mss/dataset/kpop'
+
+# Write mp3 to wav
+for s in song_title_dict:
+    search_path = '{}/*/*/{}.mp3'.format(SOURCE_PATH, s)
+    for source_path in glob.glob(search_path):
+        target_path = '{}/{}.wav'.format(TARGET_PATH, song_title_dict[s])
+        audio_utils.rewrite_mp3_to_wav(source_path, target_path)
+
+# Search and rewrite mp3 to wav
+
+# songs = []
 # original_song_list = sum(pair.itervalues(), [])
 # inst_song_list = list(inst_songs.itervalues())
-# sources.extend(original_song_list)
-# sources.extend(inst_songs)
-# for s in sources:
+# songs.extend(original_song_list)
+# songs.extend(inst_songs)
+# for s in songs:
 #     search_path = '{}/*/*/{}.mp3'.format(SOURCE_PATH, s)
 #     for source_path in glob.glob(search_path):
-#         target_path = '{}/{}.wav'.format(WAV_TEMP_PATH, s)
-#         convert_mp3_to_wav(source_path, target_path)
+#         target_path = '{}/{}.wav'.format(TARGET_PATH, s)
+#         audio_utils.rewrite_mp3_to_wav(source_path, target_path)
 
 
 ########################################################################################################################
 # Create 2-channel wav
 ########################################################################################################################
 
+# SOURCE_PATH = '/avin.hero/mss/dataset/kpop'
+# TARGET_PATH = '/avin.hero/mss/dataset/train/kpop'
+
+
 # for inst, originals in pair.iteritems():
 #     if not originals:
 #         continue
 #     else:
 #         orig = originals[0]
-#         inst_path = '{}/{}.wav'.format(WAV_TEMP_PATH, inst)
-#         orig_path = '{}/{}.wav'.format(WAV_TEMP_PATH, orig)
+#         inst_path = '{}/{}.wav'.format(SOURCE_PATH, inst)
+#         orig_path = '{}/{}.wav'.format(SOURCE_PATH, orig)
 #         inst_data, sr = librosa.load(inst_path, mono=True, duration=60)
 #         orig_data, sr = librosa.load(orig_path, mono=True, duration=60)
 #

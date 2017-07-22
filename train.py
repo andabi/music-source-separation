@@ -10,7 +10,7 @@ from model import Model, load_state, spec_to_batch
 import os
 import shutil
 from data import Data
-from preprocess import *
+from preprocess import to_spectrogram, get_magnitude
 from utils import Diff
 from config import TrainConfig
 
@@ -83,10 +83,6 @@ def setup_path():
 
 
 if __name__ == '__main__':
-    # TODO multi-gpu
-    # (https://www.tensorflow.org/tutorials/deep_cnn#training_a_model_using_multiple_gpu_cards)
-    # (https://www.tensorflow.org/tutorials/using_gpu#allowing_gpu_memory_growth)
-    # TODO queue
-    # TODO parellel
+    # TODO multi-gpu, queue, parellel
     setup_path()
     train()

@@ -67,13 +67,13 @@ def time_freq_mask(target_src, remaining_src):
     return mask
 
 
-def griffin_lim(mag, len_frame, len_hop, num_iters, phase_angle=None):
+def griffin_lim(mag, len_frame, len_hop, num_iters, phase_angle=None, length=None):
     assert(num_iters > 0)
     if phase_angle is None:
         phase_angle = np.pi * np.random.rand(*mag.shape)
     spec = get_stft_matrix(mag, phase_angle)
     for i in range(num_iters):
-        wav = librosa.istft(spec, win_length=len_frame, hop_length=len_hop)
+        wav = librosa.istft(spec, win_length=len_frame, hop_length=len_hop, length=length)
         if i != num_iters - 1:
             spec = librosa.stft(wav, n_fft=len_frame, win_length=len_frame, hop_length=len_hop)
             _, phase = librosa.magphase(spec)

@@ -5,14 +5,18 @@ By Dabi Ahn. andabi412@gmail.com.
 https://www.github.com/andabi
 '''
 
-import tensorflow as tf
-from model import Model, load_state, batch_to_spec, spec_to_batch
 import os
-from data import Data
-from preprocess import *
-from config import EvalConfig
-from mir_eval.separation import bss_eval_sources
 import shutil
+
+import librosa
+import numpy as np
+import tensorflow as tf
+
+from config import EvalConfig, ModelConfig
+from data import Data
+from mir_eval.separation import bss_eval_sources
+from model import Model, load_state, batch_to_spec, spec_to_batch
+from preprocess import to_spectrogram, get_magnitude, get_phase, to_wav_mag_only, time_freq_mask, to_wav
 
 
 def eval():
@@ -36,7 +40,7 @@ def eval():
         mixed_batch, mixed_mag = spec_to_batch(mixed_mag)
         mixed_phase = get_phase(mixed_spec)[:, :, :mixed_mag.shape[-1]]
 
-        assert(np.all(np.equal(batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), mixed_mag)))
+        assert (np.all(np.equal(batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), mixed_mag)))
 
         (pred_src1_mag, pred_src2_mag) = sess.run(model(), feed_dict={model.x_mixed: mixed_batch})
 
@@ -99,7 +103,7 @@ def bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav)
     src1_wav = src1_wav[:, :len_cropped]
     src2_wav = src2_wav[:, :len_cropped]
     mixed_wav = mixed_wav[:, :len_cropped]
-    gnsdr, gsir, gsar = np.zeros(2), np.zeros(2), np.zeros(2)
+    gnsdr = gsir = gsar = np.zeros(2)
     total_len = 0
     for i in range(EvalConfig.NUM_EVAL):
         sdr, sir, sar, _ = bss_eval_sources(np.array([src1_wav[i], src2_wav[i]]),
