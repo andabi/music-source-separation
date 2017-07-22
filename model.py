@@ -49,34 +49,33 @@ class Model:
         pred_y_src1, pred_y_src2 = self()
         return tf.reduce_mean(tf.square(self.y_src1 - pred_y_src1) + tf.square(self.y_src2 - pred_y_src2), name='loss')
 
+    @staticmethod
+    # shape = (batch_size, n_freq, n_frames) => (batch_size, n_frames, n_freq)
+    def spec_to_batch(src):
+        num_wavs, freq, n_frames = src.shape
 
-# shape = (batch_size, n_freq, n_frames) => (batch_size, n_frames, n_freq)
-def spec_to_batch(src):
-    num_wavs, freq, n_frames = src.shape
+        # Padding
+        pad_len = 0
+        if n_frames % ModelConfig.SEQ_LEN > 0:
+            pad_len = (ModelConfig.SEQ_LEN - (n_frames % ModelConfig.SEQ_LEN))
+        pad_width = ((0, 0), (0, 0), (0, pad_len))
+        padded_src = np.pad(src, pad_width=pad_width, mode='constant', constant_values=0)
 
-    # Padding
-    pad_len = 0
-    if n_frames % ModelConfig.SEQ_LEN > 0:
-        pad_len = (ModelConfig.SEQ_LEN - (n_frames % ModelConfig.SEQ_LEN))
-    pad_width = ((0, 0), (0, 0), (0, pad_len))
-    padded_src = np.pad(src, pad_width=pad_width, mode='constant', constant_values=0)
+        assert(padded_src.shape[-1] % ModelConfig.SEQ_LEN == 0)
 
-    assert(padded_src.shape[-1] % ModelConfig.SEQ_LEN == 0)
+        batch = np.reshape(padded_src.transpose(0, 2, 1), (-1, ModelConfig.SEQ_LEN, freq))
+        return batch, padded_src
 
-    padded_src = padded_src.transpose(0, 2, 1)
-    batch = np.reshape(padded_src, (-1, ModelConfig.SEQ_LEN, freq))
-    return batch, padded_src
+    @staticmethod
+    def batch_to_spec(src, num_wav):
+        # shape = (batch_size, n_frames, n_freq) => (batch_size, n_freq, n_frames)
+        batch_size, seq_len, freq = src.shape
+        src = np.reshape(src, (num_wav, -1, freq))
+        src = src.transpose(0, 2, 1)
+        return src
 
-
-# shape = (batch_size, n_frames, n_freq) => (batch_size, n_freq, n_frames)
-def batch_to_spec(pred_src, num_wav):
-    batch_size, seq_len, freq = pred_src.shape
-    pred_src = np.reshape(pred_src, (num_wav, -1, freq))
-    pred_src = pred_src.transpose(0, 2, 1)
-    return pred_src
-
-
-def load_state(sess, ckpt_path):
-    ckpt = tf.train.get_checkpoint_state(os.path.dirname(ckpt_path + '/checkpoint'))
-    if ckpt and ckpt.model_checkpoint_path:
-        tf.train.Saver().restore(sess, ckpt.model_checkpoint_path)
+    @staticmethod
+    def load_state(sess, ckpt_path):
+        ckpt = tf.train.get_checkpoint_state(os.path.dirname(ckpt_path + '/checkpoint'))
+        if ckpt and ckpt.model_checkpoint_path:
+            tf.train.Saver().restore(sess, ckpt.model_checkpoint_path)

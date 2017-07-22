@@ -6,7 +6,7 @@ https://www.github.com/andabi
 '''
 
 import tensorflow as tf
-from model import Model, load_state, spec_to_batch
+from model import Model
 import os
 import shutil
 from data import Data
@@ -38,7 +38,7 @@ def train():
 
         # Initialized, Load state
         sess.run(tf.global_variables_initializer())
-        load_state(sess, TrainConfig.CKPT_PATH)
+        model.load_state(sess, TrainConfig.CKPT_PATH)
 
         writer = tf.summary.FileWriter(TrainConfig.GRAPH_PATH, sess.graph)
 
@@ -53,9 +53,9 @@ def train():
             src1_spec, src2_spec = to_spectrogram(src1_wav), to_spectrogram(src2_wav)
             src1_mag, src2_mag = get_magnitude(src1_spec), get_magnitude(src2_spec)
 
-            src1_batch, src1_mag = spec_to_batch(src1_mag)
-            src2_batch, src1_mag = spec_to_batch(src2_mag)
-            mixed_batch, mixed_mag = spec_to_batch(mixed_mag)
+            src1_batch, _ = model.spec_to_batch(src1_mag)
+            src2_batch, _ = model.spec_to_batch(src2_mag)
+            mixed_batch, _ = model.spec_to_batch(mixed_mag)
 
             l, _, summary = sess.run([loss_fn, optimizer, summary_op],
                                      feed_dict={model.x_mixed: mixed_batch, model.y_src1: src1_batch, model.y_src2: src2_batch})

@@ -15,7 +15,7 @@ import tensorflow as tf
 from config import EvalConfig, ModelConfig
 from data import Data
 from mir_eval.separation import bss_eval_sources
-from model import Model, load_state, batch_to_spec, spec_to_batch
+from model import Model
 from preprocess import to_spectrogram, get_magnitude, get_phase, to_wav_mag_only, time_freq_mask, to_wav
 
 
@@ -28,7 +28,7 @@ def eval():
 
         # Initialized, Load state
         sess.run(tf.global_variables_initializer())
-        load_state(sess, EvalConfig.CKPT_PATH)
+        model.load_state(sess, EvalConfig.CKPT_PATH)
 
         writer = tf.summary.FileWriter(EvalConfig.GRAPH_PATH, sess.graph)
 
@@ -37,15 +37,15 @@ def eval():
 
         mixed_spec = to_spectrogram(mixed_wav)
         mixed_mag = get_magnitude(mixed_spec)
-        mixed_batch, mixed_mag = spec_to_batch(mixed_mag)
+        mixed_batch, mixed_mag = model.spec_to_batch(mixed_mag)
         mixed_phase = get_phase(mixed_spec)[:, :, :mixed_mag.shape[-1]]
 
-        assert (np.all(np.equal(batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), mixed_mag)))
+        assert (np.all(np.equal(model.batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), mixed_mag)))
 
         (pred_src1_mag, pred_src2_mag) = sess.run(model(), feed_dict={model.x_mixed: mixed_batch})
 
-        pred_src1_mag = batch_to_spec(pred_src1_mag, EvalConfig.NUM_EVAL)
-        pred_src2_mag = batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)
+        pred_src1_mag = model.batch_to_spec(pred_src1_mag, EvalConfig.NUM_EVAL)
+        pred_src2_mag = model.batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)
 
         # Time-frequency masking
         mask_src1 = time_freq_mask(pred_src1_mag, pred_src2_mag)
