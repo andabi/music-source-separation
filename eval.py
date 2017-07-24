@@ -37,15 +37,16 @@ def eval():
 
         mixed_spec = to_spectrogram(mixed_wav)
         mixed_mag = get_magnitude(mixed_spec)
-        mixed_batch, mixed_mag = model.spec_to_batch(mixed_mag)
-        mixed_phase = get_phase(mixed_spec)[:, :, :mixed_mag.shape[-1]]
+        mixed_batch, padded_mixed_mag = model.spec_to_batch(mixed_mag)
+        mixed_phase = get_phase(mixed_spec)
 
-        assert (np.all(np.equal(model.batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), mixed_mag)))
+        assert (np.all(np.equal(model.batch_to_spec(mixed_batch, EvalConfig.NUM_EVAL), padded_mixed_mag)))
 
         (pred_src1_mag, pred_src2_mag) = sess.run(model(), feed_dict={model.x_mixed: mixed_batch})
 
-        pred_src1_mag = model.batch_to_spec(pred_src1_mag, EvalConfig.NUM_EVAL)
-        pred_src2_mag = model.batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)
+        seq_len = mixed_phase.shape[-1]
+        pred_src1_mag = model.batch_to_spec(pred_src1_mag, EvalConfig.NUM_EVAL)[:, :, :seq_len]
+        pred_src2_mag = model.batch_to_spec(pred_src2_mag, EvalConfig.NUM_EVAL)[:, :, :seq_len]
 
         # Time-frequency masking
         mask_src1 = soft_time_freq_mask(pred_src1_mag, pred_src2_mag)
