@@ -1,0 +1,20 @@
+language: python
+python: 2.7
+sudo: False
+dist: trusty
+
+install:
+    - pip install pypandoc
+    - python -c "from pypandoc.pandoc_download import download_pandoc; download_pandoc()"
+    - pip install sphinx
+    - pip install travis-sphinx
+    - pip install recommonmark
+    - pip install -U git+https://github.com/dade-ai/sphinxcontrib-pandoc-markdown.git
+
+
+script:
+    - pandoc -v
+    - travis-sphinx --source . --nowarn build
+
+after_success:
+    - travis-sphinx deploy

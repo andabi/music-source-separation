@@ -7,13 +7,14 @@ https://www.github.com/andabi
 
 import tensorflow as tf
 
+
 # TODO tf arg
 # Model
 class ModelConfig:
     SR = 16000
     L_FRAME = 1024
     L_HOP = L_FRAME / 4
-    SEQ_LEN = 8
+    SEQ_LEN = 4
 
 
 # Train
@@ -41,9 +42,9 @@ class TrainConfig:
 # TODO config for each case
 # Eval
 class EvalConfig:
-    # CASE = 'ikala_kpop'
-    CASE = '4-frames-masking-layer'
-    # CASE = str(ModelConfig.SEQ_LEN) + 'frames_ikala'
+    # CASE = '1frame'
+    # CASE = '4-frames-masking-layer'
+    CASE = str(ModelConfig.SEQ_LEN) + 'frames_ikala'
     CKPT_PATH = 'checkpoints/' + CASE
     GRAPH_PATH = 'graphs/' + CASE + '/eval'
     DATA_PATH = 'dataset/eval/kpop'
@@ -51,11 +52,11 @@ class EvalConfig:
     # DATA_PATH = 'dataset/ikala'
     GRIFFIN_LIM = False
     GRIFFIN_LIM_ITER = 1000
-    NUM_EVAL = 2
-    SECONDS = 180
+    NUM_EVAL = 9
+    SECONDS = 60
     RE_EVAL = True
     EVAL_METRIC = False
-    WRITE_RESULT = False
+    WRITE_RESULT = True
     RESULT_PATH = 'results/' + CASE
     session_conf = tf.ConfigProto(
         device_count={'CPU': 1, 'GPU': 1},
