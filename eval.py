@@ -8,7 +8,6 @@ https://www.github.com/andabi
 import os
 import shutil
 
-import librosa
 import numpy as np
 import tensorflow as tf
 
@@ -16,7 +15,7 @@ from config import EvalConfig, ModelConfig
 from data import Data
 from mir_eval.separation import bss_eval_sources
 from model import Model
-from preprocess import to_spectrogram, get_magnitude, get_phase, to_wav_mag_only, soft_time_freq_mask, hard_time_freq_mask, to_wav
+from preprocess import to_spectrogram, get_magnitude, get_phase, to_wav_mag_only, soft_time_freq_mask, to_wav, write_wav
 
 
 def eval():
@@ -84,20 +83,13 @@ def eval():
             # Write the result
             for i in range(len(wavfiles)):
                 name = wavfiles[i].replace('/', '-').replace('.wav', '')
-                write_result(name, mixed_wav[i], pred_src1_wav[i], pred_src2_wav[i])
+                write_wav(mixed_wav[i], '{}/{}-{}'.format(EvalConfig.RESULT_PATH, name, 'original'))
+                write_wav(pred_src1_wav[i], '{}/{}-{}'.format(EvalConfig.RESULT_PATH, name, 'music'))
+                write_wav(pred_src2_wav[i], '{}/{}-{}'.format(EvalConfig.RESULT_PATH, name, 'voice'))
 
         writer.add_summary(sess.run(tf.summary.merge_all()), global_step=global_step.eval())
 
         writer.close()
-
-
-def write_result(name, mixed, src1, src2):
-    librosa.output.write_wav('{}/{}-{}.wav'.format(EvalConfig.RESULT_PATH, name, 'original'), mixed,
-                             ModelConfig.SR)
-    librosa.output.write_wav('{}/{}-{}.wav'.format(EvalConfig.RESULT_PATH, name, 'music'), src1,
-                             ModelConfig.SR)
-    librosa.output.write_wav('{}/{}-{}.wav'.format(EvalConfig.RESULT_PATH, name, 'vocal'), src2,
-                             ModelConfig.SR)
 
 
 def bss_eval_global(mixed_wav, src1_wav, src2_wav, pred_src1_wav, pred_src2_wav):

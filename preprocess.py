@@ -8,6 +8,7 @@ https://www.github.com/andabi
 import librosa
 import numpy as np
 from config import ModelConfig
+import soundfile as sf
 
 
 # Batch considered
@@ -41,12 +42,6 @@ def to_wav_mag_only(mag, init_phase, len_frame=ModelConfig.L_FRAME, len_hop=Mode
 
 
 # Batch considered
-def write_wav(wav, filenames, sr=ModelConfig.SR):
-    pair = zip(wav, filenames)
-    map(lambda p: librosa.output.write_wav(p[1], p[0], sr), pair)
-
-
-# Batch considered
 def get_magnitude(stft_matrixes):
     return np.abs(stft_matrixes)
 
@@ -71,6 +66,11 @@ def soft_time_freq_mask(target_src, remaining_src):
 def hard_time_freq_mask(target_src, remaining_src):
     mask = np.where(target_src > remaining_src, 1., 0.)
     return mask
+
+
+def write_wav(data, path, sr=ModelConfig.SR, format='wav', subtype='PCM_16'):
+    sf.write('{}.wav'.format(path), data, sr, format=format, subtype=subtype)
+    # librosa.output.write_wav('{}.wav'.format(path), data.astype(np.int16), sr)
 
 
 def griffin_lim(mag, len_frame, len_hop, num_iters, phase_angle=None, length=None):
