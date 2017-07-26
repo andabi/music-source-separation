@@ -2,8 +2,8 @@
 
 >__This work is from [Jeju Machine Learning Camp 2017](http://mlcampjeju.kakao.com)__
 >* Co-author: Mark Kwon (hjkwon0609@gmail.com)
->* Final work will be done in Jeju ML Camp. Please check https://github.com/hjkwon0609/source_separation_ml_jeju
->* Take a look at the demo! https://www.youtube.com/watch?v=Cx7Me0Ayz1I&feature=youtu.be
+>* Final work will be done in Jeju ML Camp. Please check [here](https://github.com/hjkwon0609/source_separation_ml_jeju).
+>* [__Take a look at the demo!__](https://www.youtube.com/watch?v=Cx7Me0Ayz1I&feature=youtu.be)
 
 ## Intro
 Recently, deep neural networks have been used in numerous fields and improved quality of many tasks in the fields. 

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 #
-# mss documentation build configuration file, created by
-# sphinx-quickstart on Tue Jul 25 17:22:23 2017.
+# music source separation documentation build configuration file, created by
+# sphinx-quickstart on Wed Jul 26 11:32:34 2017.
 #
 # This file is execfile()d with the current directory set to its
 # containing dir.
@@ -30,7 +30,6 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-
 extensions = [
     'sphinx.ext.mathjax',
     'sphinx.ext.ifconfig',
@@ -44,10 +43,8 @@ templates_path = ['_templates']
 # You can specify multiple suffix as a list of string:
 #
 source_suffix = ['.rst', '.md']
-# source_suffix = '.rst'
 
 source_parsers = {
-   # '.md' :  MarkdownParser,
     '.md': 'recommonmark.parser.CommonMarkParser',
 }
 
@@ -55,7 +52,7 @@ source_parsers = {
 master_doc = 'index'
 
 # General information about the project.
-project = u'mss'
+project = u'music source separation'
 copyright = u'2017, andabi'
 author = u'andabi'
 
@@ -98,7 +95,12 @@ html_theme = 'alabaster'
 # further.  For a list of options available for each theme, see the
 # documentation.
 #
-# html_theme_options = {}
+html_theme_options = {
+    'description': 'Separating singing voice from music using deep neural net',
+    'github_user': 'andabi',
+    'github_repo': 'music-source-separation',
+    'github_banner': True
+}
 
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
@@ -112,7 +114,7 @@ html_static_path = ['_static']
 # refs: http://alabaster.readthedocs.io/en/latest/installation.html#sidebars
 html_sidebars = {
     '**': [
-        # 'about.html',
+        'about.html',
         # 'navigation.html',
         # 'relations.html',  # needs 'show_related': True theme option to display
         # 'searchbox.html',
@@ -124,7 +126,7 @@ html_sidebars = {
 # -- Options for HTMLHelp output ------------------------------------------
 
 # Output file base name for HTML help builder.
-htmlhelp_basename = 'mssdoc'
+htmlhelp_basename = 'musicsourceseparationdoc'
 
 
 # -- Options for LaTeX output ---------------------------------------------
@@ -151,7 +153,7 @@ latex_elements = {
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
-    (master_doc, 'mss.tex', u'mss Documentation',
+    (master_doc, 'musicsourceseparation.tex', u'music source separation Documentation',
      u'andabi', 'manual'),
 ]
 
@@ -161,7 +163,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    (master_doc, 'mss', u'mss Documentation',
+    (master_doc, 'musicsourceseparation', u'music source separation Documentation',
      [author], 1)
 ]
 
@@ -172,8 +174,8 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    (master_doc, 'mss', u'mss Documentation',
-     author, 'mss', 'One line description of project.',
+    (master_doc, 'musicsourceseparation', u'music source separation Documentation',
+     author, 'musicsourceseparation', 'One line description of project.',
      'Miscellaneous'),
 ]
 

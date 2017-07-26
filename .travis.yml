@@ -14,7 +14,7 @@ install:
 
 script:
     - pandoc -v
-    - travis-sphinx --source . --nowarn build
+    - travis-sphinx --source ./doc --nowarn build
 
 after_success:
     - travis-sphinx deploy

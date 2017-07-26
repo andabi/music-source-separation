@@ -1,35 +1,28 @@
-Deep Neural Network for Music Source Separation in Tensorflow
-===
+# Deep Neural Network for Music Source Separation in Tensorflow
 
 >__This work is from [Jeju Machine Learning Camp 2017](http://mlcampjeju.kakao.com)__
 >* Co-author: Mark Kwon (hjkwon0609@gmail.com)
->* Final work will be done in Jeju ML Camp. Please check https://github.com/hjkwon0609/source_separation_ml_jeju
+>* Final work will be done in Jeju ML Camp. Please check [here](https://github.com/hjkwon0609/source_separation_ml_jeju).
+>* Take a look at the demo!
+<div class="video-container"><iframe width="853" height="480" src="https://www.youtube.com/embed/Cx7Me0Ayz1I" frameborder="0" allowfullscreen></iframe></div>
 
-Intro
----
-
+## Intro
 Recently, deep neural networks have been used in numerous fields and improved quality of many tasks in the fields. 
 Applying deep neural nets to MIR(Music Information Retrieval) tasks also provided us quantum performance improvement.
 Music source separation is a kind of task for separating voice from music such as pop music.
 In this project, I implement a deep neural network model for music source separation in Tensorflow.
 
-Implementations
----
-
+## Implementations
 * I used Posen's deep recurrent neural network(RNN) model [2, 3].
   * 3 RNN layers + 2 dense layer + 2 time-frequency masking layer
 * I used iKala dataset introduced by [1] and MIR-1K dataset which is public together when training.
 
-Requirements
----
-
+## Requirements
 * Numpy >= 1.3.0
 * TensorFlow == 1.2
 * librosa == 0.5.1
 
-Usage
----
-
+## Usage
 * Configuration
   * config.py: set dataset path appropriately.
 * Training
@@ -39,12 +32,8 @@ Usage
   * ``` python eval.py```
   * check the result in Tensorboard (audio tab).
 
-\[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014) <sup>\[3\]</sup>
-===
-
-Proposed Methods
----
-
+# \[Related Paper\] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014) <sup>\[3\]</sup>
+## Proposed Methods
 ### Overall process
 * Waveform of a music(the mixture of voice and background music) is transformed to magnitude and phase spectra by Short-Time Fourier Transformation(STFT).
 * Only magnitude spectra are processed as input of the RNN layer.
@@ -75,9 +64,7 @@ Proposed Methods
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/disc_kl.png" height="30px"></p>
 
 
-Experiments
----
-
+## Experiments
 ### Settings
 * [MIR-1K dataset](https://sites.google.com/site/unvoicedsoundseparation/mir-1k) is used.
   * 1000 song clip with a sample rate of 16KHz, with duration from 4 to 13 secs.
@@ -115,12 +102,8 @@ But discriminative training with carefully chosen weight(r) provides a bit bette
 * A visualization of magnitude spectrogram (in log scale) for the mixture, voice, and background music.
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result4.png" width="100%"></p>
 
-\[Related Paper\] Music Signal Processing Using Vector Product Neural Networks (2017) <sup>\[1\]</sup>
-===
-
-Approach
----
-
+# \[Related Paper\] Music Signal Processing Using Vector Product Neural Networks (2017) <sup>\[1\]</sup>
+## Approach
 * Some transformation methods are applied to enrich the information for each frame
   * Instead of Posen's approach(simply concatenate previous-k and subsequent-k frames)
 * Vector Product Neural Network(VPNN) proposed by [4] is used.
@@ -140,10 +123,7 @@ Approach
 
 ### Loss
 * MSE loss is used like Posen's work.
-
-Experiments
----
-
+## Experiments
 ### Settings
 * [iKala dataset](http://mac.citi.sinica.edu.tw/ikala/) is used.
   * 252 30-second excerpts sampled from 206 iKala songs
@@ -159,9 +139,7 @@ Experiments
 * CVPNN and WVPNN performs better than DNNs which have same size of weights.
 <p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/result.png" width="75%"></p>
 
-References
-===
-
+# References
 1. Zhe-Cheng Fan, Tak-Shing T. Chan, Yi-Hsuan Yang, and Jyh-Shing R. Jang, "[Music Signal Processing Using Vector Product
 Neural Networks](http://mac.citi.sinica.edu.tw/~yang/pub/fan17dlm.pdf)", Proc. of the First Int. Workshop on Deep Learning and Music joint with IJCNN, May, 2017
 2. P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, "[Joint Optimization of Masks and Deep Recurrent Neural Networks for Monaural Source Separation](http://paris.cs.illinois.edu/pubs/huang-ismir2014.pdf)", IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 23, no. 12, pp. 2136–2147, Dec. 2015
