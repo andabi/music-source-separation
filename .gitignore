@@ -5,4 +5,3 @@ dataset
 checkpoints
 graphs
 .DS_Store
-_*.py
