@@ -1,0 +1,333 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Deep Neural Network for Music Source Separation in Tensorflow &#8212; music source separation  documentation</title>
+    <link rel="stylesheet" href="_static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+   
+  <link rel="stylesheet" href="_static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="deep-neural-network-for-music-source-separation-in-tensorflow">
+<span id="deep-neural-network-for-music-source-separation-in-tensorflow"></span><h1>Deep Neural Network for Music Source Separation in Tensorflow<a class="headerlink" href="#deep-neural-network-for-music-source-separation-in-tensorflow" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><p><strong>This work is from <a class="reference external" href="http://mlcampjeju.kakao.com">Jeju Machine Learning Camp 2017</a></strong></p>
+<ul class="simple">
+<li>Co-author: Mark Kwon (hjkwon0609&#64;gmail.com)</li>
+<li>Final work will be done in Jeju ML Camp. Please check <a class="reference external" href="https://github.com/hjkwon0609/source_separation_ml_jeju">here</a>.</li>
+<li>Take a look at the demo!</li>
+</ul>
+</div></blockquote>
+<div class="video-container"><iframe width="853" height="480" src="https://www.youtube.com/embed/Cx7Me0Ayz1I" frameborder="0" allowfullscreen></iframe></div><div class="section" id="intro">
+<span id="intro"></span><h2>Intro<a class="headerlink" href="#intro" title="Permalink to this headline">¶</a></h2>
+<p>Recently, deep neural networks have been used in numerous fields and improved quality of many tasks in the fields.
+Applying deep neural nets to MIR(Music Information Retrieval) tasks also provided us quantum performance improvement.
+Music source separation is a kind of task for separating voice from music such as pop music.
+In this project, I implement a deep neural network model for music source separation in Tensorflow.</p>
+</div>
+<div class="section" id="implementations">
+<span id="implementations"></span><h2>Implementations<a class="headerlink" href="#implementations" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>I used Posen's deep recurrent neural network(RNN) model [2, 3].<ul>
+<li>3 RNN layers + 2 dense layer + 2 time-frequency masking layer</li>
+</ul>
+</li>
+<li>I used iKala dataset introduced by [1] and MIR-1K dataset which is public together when training.</li>
+</ul>
+</div>
+<div class="section" id="requirements">
+<span id="requirements"></span><h2>Requirements<a class="headerlink" href="#requirements" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Numpy &gt;= 1.3.0</li>
+<li>TensorFlow == 1.2</li>
+<li>librosa == 0.5.1</li>
+</ul>
+</div>
+<div class="section" id="usage">
+<span id="usage"></span><h2>Usage<a class="headerlink" href="#usage" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Configuration<ul>
+<li>config.py: set dataset path appropriately.</li>
+</ul>
+</li>
+<li>Training<ul>
+<li><code class="docutils literal"><span class="pre">python</span> <span class="pre">train.py</span></code></li>
+<li>check the loss graph in Tensorboard.</li>
+</ul>
+</li>
+<li>Evaluation<ul>
+<li><code class="docutils literal"><span class="pre">python</span> <span class="pre">eval.py</span></code></li>
+<li>check the result in Tensorboard (audio tab).</li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="related-paper-singing-voice-separation-from-monaural-recordings-using-deep-recurrent-neural-networks-2014-sup-3-sup">
+<span id="related-paper-singing-voice-separation-from-monaural-recordings-using-deep-recurrent-neural-networks-2014-sup-3-sup"></span><h1>[Related Paper] Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks (2014) <sup>[3]</sup><a class="headerlink" href="#related-paper-singing-voice-separation-from-monaural-recordings-using-deep-recurrent-neural-networks-2014-sup-3-sup" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="proposed-methods">
+<span id="proposed-methods"></span><h2>Proposed Methods<a class="headerlink" href="#proposed-methods" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="overall-process">
+<span id="overall-process"></span><h3>Overall process<a class="headerlink" href="#overall-process" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Waveform of a music(the mixture of voice and background music) is transformed to magnitude and phase spectra by Short-Time Fourier Transformation(STFT).</li>
+<li>Only magnitude spectra are processed as input of the RNN layer.</li>
+<li>Estimated magnitude spectra of each sources and phase spectra of the mixture are transformed to waveform of each sources by ISTFT(inverse STFT).</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/overall.png" width="75%"></p></div>
+<div class="section" id="model">
+<span id="model"></span><h3>Model<a class="headerlink" href="#model" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>RNN layers (3 layers)</li>
+<li>Dense layer<ul>
+<li>1 for each source</li>
+</ul>
+</li>
+<li>Time-frequency masking layer (normalization)<ul>
+<li>1 for each source</li>
+<li>no non-linearity</li>
+<li>src1's magnitude + src2's magnitude = input's magnitude</li>
+</ul>
+</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/model.png" width="75%"></p></div>
+<div class="section" id="loss">
+<span id="loss"></span><h3>Loss<a class="headerlink" href="#loss" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Mean squared error(MSE) or KL divergence between estimated magnitude and ground true are used as the loss function.</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/mse.png" height="30px"></p><p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/kl.png" height="30px"></p><ul class="simple">
+<li>Further, to prevent different sources to get similar each other, 'discrimination' term is considered additionally.<ul>
+<li>The discrimination weight(r) should be carefully chosen because it causes ignoring the first term when training(large r (e.g. r &gt;= 1) makes the result bad)</li>
+</ul>
+</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/disc_mse.png" height="30px"></p><p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/disc_kl.png" height="30px"></p></div>
+</div>
+<div class="section" id="experiments">
+<span id="experiments"></span><h2>Experiments<a class="headerlink" href="#experiments" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="settings">
+<span id="settings"></span><h3>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><a class="reference external" href="https://sites.google.com/site/unvoicedsoundseparation/mir-1k">MIR-1K dataset</a> is used.<ul>
+<li>1000 song clip with a sample rate of 16KHz, with duration from 4 to 13 secs.</li>
+<li>extracted from 110 Karaoke songs performed by both male and female amateurs.</li>
+<li>singing voice and background music in different channels.</li>
+</ul>
+</li>
+<li>Data augmentation<ul>
+<li>circularly shift the singing voice and mix them with the background music.</li>
+</ul>
+</li>
+<li>1024 points STFT with 50% overlap (hop size=512 points)</li>
+<li>L-BFGS optimizer rather than gradient decent optimizers</li>
+<li>Concatenating neighboring 1 frame<ul>
+<li>To enrich context, previous and next frames are concatenated to current frame.</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="evaluation-metric">
+<span id="evaluation-metric"></span><h3>Evaluation Metric<a class="headerlink" href="#evaluation-metric" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><a class="reference external" href="https://hal.inria.fr/inria-00544230/document">BSS-EVAL 3.0 metrics</a> are used.</li>
+<li>(<strong>v'</strong> = estimated voice, <strong>v</strong> = ground truth voice, <strong>m</strong> = ground truth music, <strong>x</strong> = the mixture)<ul>
+<li>Source to Distortion Ratio (SDR) or GSDR(length weighted)<ul>
+<li>SDR(<strong>v</strong>) = how similar <strong>v'</strong> with <strong>v</strong>?</li>
+</ul>
+</li>
+<li>Source to Interferences Ratio (SIR) or GSIR(length weighted)<ul>
+<li>SIR(<strong>v</strong>) = how discriminative <strong>v'</strong> with <strong>m</strong>?</li>
+</ul>
+</li>
+<li>Sources to Artifacts Ratio (SAR) or GSAR(length weighted)</li>
+<li>NSDR(Normalized SDR) or GNSDR(length weighted)<ul>
+<li>SDR improvement between the estimated voice and the mixture.</li>
+<li>SDR(<strong>v'</strong>, <strong>v</strong>) - SDR(<strong>x</strong>, <strong>v</strong>)</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="results">
+<span id="results"></span><h3>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>The proposed neural network models achieve 2.30-2.48 dB GNSDR gain, 4.32-5.42 dB GSIR gain with similar GSAR performance, compared with conventional approaches. (quantum jump!!!)</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result3.png" width="50%"></p><ul class="simple">
+<li>Concatenating neighboring 1 frame provides better results.
+We can make a assumption that more sufficient information than single frame provides more hint to the neural net.</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result1.png" width="50%"></p><ul class="simple">
+<li>The RNN-based models, in fact, do not make any plausible improvement comparing with DNN.
+But discriminative training with carefully chosen weight(r) provides a bit better performance in the experiments.</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result2.png" width="50%"></p><ul class="simple">
+<li>A visualization of magnitude spectrogram (in log scale) for the mixture, voice, and background music.</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/posen/result4.png" width="100%"></p></div>
+</div>
+</div>
+<div class="section" id="related-paper-music-signal-processing-using-vector-product-neural-networks-2017-sup-1-sup">
+<span id="related-paper-music-signal-processing-using-vector-product-neural-networks-2017-sup-1-sup"></span><h1>[Related Paper] Music Signal Processing Using Vector Product Neural Networks (2017) <sup>[1]</sup><a class="headerlink" href="#related-paper-music-signal-processing-using-vector-product-neural-networks-2017-sup-1-sup" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="approach">
+<span id="approach"></span><h2>Approach<a class="headerlink" href="#approach" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>Some transformation methods are applied to enrich the information for each frame<ul>
+<li>Instead of Posen's approach(simply concatenate previous-k and subsequent-k frames)</li>
+</ul>
+</li>
+<li>Vector Product Neural Network(VPNN) proposed by [4] is used.<ul>
+<li>In VPNN, the input data, weights, and biases are all three-dimensional vectors</li>
+<li>each elements(vectors) are operated by cross product of vectors.</li>
+</ul>
+</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/vvpn.png" width="50%"></p><div class="section" id="context-windowed-transformation-wvpnn">
+<span id="context-windowed-transformation-wvpnn"></span><h3>Context-windowed Transformation (WVPNN)<a class="headerlink" href="#context-windowed-transformation-wvpnn" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>previous, current, and subsequent frame as 3-dimensional vector</li>
+<li>take only second value(current frame) as output in 3-dimensional output vector</li>
+</ul>
+</div>
+<div class="section" id="spectral-color-transformation-cvpnn">
+<span id="spectral-color-transformation-cvpnn"></span><h3>Spectral-color Transformation (CVPNN)<a class="headerlink" href="#spectral-color-transformation-cvpnn" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>Transformation the magnitude to RGB colored value (3-dimensional vector)<ul>
+<li>x is the magnitude of each t-f unit,</li>
+<li>n a scalar to bias the generation of RGB values.<ul>
+<li>empirically set n to 0.0938 in this work.</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/spectral_color_trans.png" width="50%"></p></div>
+<div class="section" id="loss">
+<span id="id1"></span><h3>Loss<a class="headerlink" href="#loss" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>MSE loss is used like Posen's work.</li>
+</ul>
+</div>
+</div>
+<div class="section" id="experiments">
+<span id="id2"></span><h2>Experiments<a class="headerlink" href="#experiments" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="settings">
+<span id="id3"></span><h3>Settings<a class="headerlink" href="#settings" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li><a class="reference external" href="http://mac.citi.sinica.edu.tw/ikala/">iKala dataset</a> is used.<ul>
+<li>252 30-second excerpts sampled from 206 iKala songs</li>
+</ul>
+</li>
+<li>63 training clips and 189 testing clips.</li>
+<li>All clips are downsampled to 16000 Hz.</li>
+<li>1024-point window and a 256-point hop size.</li>
+<li>VPNN of 3-layers and 512 units each layer.</li>
+<li>time frequency masking applied.</li>
+</ul>
+</div>
+<div class="section" id="evaluation-metric">
+<span id="id4"></span><h3>Evaluation Metric<a class="headerlink" href="#evaluation-metric" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="https://hal.inria.fr/inria-00544230/document">GNSDR, GSIR, GSAR</a> are used.</p>
+</div>
+<div class="section" id="results">
+<span id="id5"></span><h3>Results<a class="headerlink" href="#results" title="Permalink to this headline">¶</a></h3>
+<ul class="simple">
+<li>CVPNN and WVPNN performs better than DNNs which have same size of weights.</li>
+</ul>
+<p align="center"><img src="https://raw.githubusercontent.com/andabi/music-source-separation/master/materials/zhe-cheng/result.png" width="75%"></p></div>
+</div>
+</div>
+<div class="section" id="references">
+<span id="references"></span><h1>References<a class="headerlink" href="#references" title="Permalink to this headline">¶</a></h1>
+<ol class="simple">
+<li>Zhe-Cheng Fan, Tak-Shing T. Chan, Yi-Hsuan Yang, and Jyh-Shing R. Jang, &quot;<a class="reference external" href="http://mac.citi.sinica.edu.tw/~yang/pub/fan17dlm.pdf">Music Signal Processing Using Vector Product
+Neural Networks</a>&quot;, Proc. of the First Int. Workshop on Deep Learning and Music joint with IJCNN, May, 2017</li>
+<li>P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, &quot;<a class="reference external" href="http://paris.cs.illinois.edu/pubs/huang-ismir2014.pdf">Joint Optimization of Masks and Deep Recurrent Neural Networks for Monaural Source Separation</a>&quot;, IEEE/ACM Transactions on Audio, Speech, and Language Processing, vol. 23, no. 12, pp. 2136–2147, Dec. 2015</li>
+<li>P.-S. Huang, M. Kim, M. Hasegawa-Johnson, P. Smaragdis, &quot;<a class="reference external" href="https://posenhuang.github.io/papers/DRNN_ISMIR2014.pdf">Singing-Voice Separation From Monaural Recordings Using Deep Recurrent Neural Networks</a>&quot; in International Society for Music Information Retrieval Conference (ISMIR) 2014.</li>
+<li>Tohru Nitta, &quot;<a class="reference external" href="https://staff.aist.go.jp/tohru-nitta/IJCNN93-VP.pdf">A backpropagation algorithm for neural networks based an 3D vector product. In Proc. IJCNN</a>&quot;, Proc. of IJCAI, 2007.</li>
+</ol>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<h1 class="logo"><a href="#">music source separation</a></h1>
+
+
+
+<p class="blurb">Separating singing voice from music using deep neural net</p>
+
+
+
+
+<p>
+<iframe src="https://ghbtns.com/github-btn.html?user=andabi&repo=music-source-separation&type=watch&count=true&size=large&v=2"
+  allowtransparency="true" frameborder="0" scrolling="0" width="200px" height="35px"></iframe>
+</p>
+
+
+
+
+
+
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, andabi.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.6.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+      |
+      <a href="_sources/index.md.txt"
+          rel="nofollow">Page source</a>
+    </div>
+
+    
+    <a href="https://github.com/andabi/music-source-separation" class="github">
+        <img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub"  class="github"/>
+    </a>
+    
+
+    
+  </body>
+</html>
