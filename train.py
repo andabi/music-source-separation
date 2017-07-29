@@ -15,6 +15,7 @@ from utils import Diff
 from config import TrainConfig
 
 
+# TODO multi-gpu
 def train():
     # Model
     model = Model()
@@ -25,14 +26,7 @@ def train():
     optimizer = tf.train.AdamOptimizer(learning_rate=TrainConfig.LR).minimize(loss_fn, global_step=global_step)
 
     # Summaries
-    for v in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
-        tf.summary.histogram(v.name, v)
-        tf.summary.histogram('grad/' + v.name, tf.gradients(loss_fn, v))
-    tf.summary.scalar('loss', loss_fn)
-    tf.summary.histogram('x_mixed', model.x_mixed)
-    tf.summary.histogram('y_src1', model.y_src1)
-    tf.summary.histogram('y_src2', model.y_src1)
-    summary_op = tf.summary.merge_all()
+    summary_op = summaries(model, loss_fn)
 
     with tf.Session(config=TrainConfig.session_conf) as sess:
 
@@ -42,9 +36,11 @@ def train():
 
         writer = tf.summary.FileWriter(TrainConfig.GRAPH_PATH, sess.graph)
 
+        # Input source
         data = Data(TrainConfig.DATA_PATH)
+
         loss = Diff()
-        for step in range(global_step.eval(), TrainConfig.FINAL_STEP):
+        for step in xrange(global_step.eval(), TrainConfig.FINAL_STEP):
             mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, TrainConfig.NUM_WAVFILE)
 
             mixed_spec = to_spectrogram(mixed_wav)
@@ -58,7 +54,8 @@ def train():
             mixed_batch, _ = model.spec_to_batch(mixed_mag)
 
             l, _, summary = sess.run([loss_fn, optimizer, summary_op],
-                                     feed_dict={model.x_mixed: mixed_batch, model.y_src1: src1_batch, model.y_src2: src2_batch})
+                                     feed_dict={model.x_mixed: mixed_batch, model.y_src1: src1_batch,
+                                                model.y_src2: src2_batch})
 
             loss.update(l)
             print('step-{}\td_loss={:2.2f}\tloss={}'.format(step, loss.diff * 100, loss.value))
@@ -72,6 +69,17 @@ def train():
         writer.close()
 
 
+def summaries(model, loss):
+    for v in tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES):
+        tf.summary.histogram(v.name, v)
+        tf.summary.histogram('grad/' + v.name, tf.gradients(loss, v))
+    tf.summary.scalar('loss', loss)
+    tf.summary.histogram('x_mixed', model.x_mixed)
+    tf.summary.histogram('y_src1', model.y_src1)
+    tf.summary.histogram('y_src2', model.y_src1)
+    return tf.summary.merge_all()
+
+
 def setup_path():
     if TrainConfig.RE_TRAIN:
         if os.path.exists(TrainConfig.CKPT_PATH):
@@ -83,6 +91,5 @@ def setup_path():
 
 
 if __name__ == '__main__':
-    # TODO multi-gpu, queue, parellel
     setup_path()
     train()
