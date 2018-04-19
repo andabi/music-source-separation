@@ -40,7 +40,7 @@ def train():
         data = Data(TrainConfig.DATA_PATH)
 
         loss = Diff()
-        for step in xrange(global_step.eval(), TrainConfig.FINAL_STEP):
+        for step in range(global_step.eval(), TrainConfig.FINAL_STEP): # changed xrange to range for py3
             mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, TrainConfig.NUM_WAVFILE)
 
             mixed_spec = to_spectrogram(mixed_wav)

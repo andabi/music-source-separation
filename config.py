@@ -13,7 +13,7 @@ import tensorflow as tf
 class ModelConfig:
     SR = 16000
     L_FRAME = 1024
-    L_HOP = L_FRAME / 4
+    L_HOP = int(L_FRAME / 4) # changed to int because py3 otherwise makes float
     SEQ_LEN = 4
 
 
