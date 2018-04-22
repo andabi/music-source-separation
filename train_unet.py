@@ -6,7 +6,6 @@ https://www.github.com/andabi
 '''
 
 import tensorflow as tf
-#from model import Model
 from model import Model
 import os
 import shutil
@@ -15,8 +14,7 @@ from preprocess import to_spectrogram, get_magnitude
 from utils import Diff
 from config import TrainConfig
 
-import matplotlib as plt
-import librosa.display
+from kapre_helpers import *
 
 # TODO multi-gpu
 def train():
@@ -43,7 +41,7 @@ def train():
         data = Data(TrainConfig.DATA_PATH)
 
         loss = Diff()
-        for step in range(global_step.eval(), TrainConfig.FINAL_STEP): # changed xrange to range for py3
+        for step in range(global_step.eval(), TrainConfig.FINAL_STEP):
             mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, TrainConfig.NUM_WAVFILE)
 
             mixed_spec = to_spectrogram(mixed_wav)
@@ -55,6 +53,14 @@ def train():
             src1_batch, _ = model.spec_to_batch(src1_mag)
             src2_batch, _ = model.spec_to_batch(src2_mag)
             mixed_batch, _ = model.spec_to_batch(mixed_mag)
+
+            print(src1_wav.shape)
+            print(src1_spec.shape)
+            print(src1_mag.shape)
+            print(src1_batch.shape)
+
+            kapre
+            exit()
 
             l, _, summary = sess.run([loss_fn, optimizer, summary_op],
                                      feed_dict={model.x_mixed: mixed_batch, model.y_src1: src1_batch,

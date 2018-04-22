@@ -33,7 +33,8 @@ def to_wav_from_spec(stft_maxrix, len_hop=ModelConfig.L_HOP):
 
 # Batch considered
 def to_wav_mag_only(mag, init_phase, len_frame=ModelConfig.L_FRAME, len_hop=ModelConfig.L_HOP, num_iters=50):
-    return np.array(list(map(lambda m_p: griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p)[0], zip(mag, init_phase)[1])))
+    #return np.array(list(map(lambda m_p: griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p)[0], list(zip(mag, init_phase))[1])))
+    return np.array(list(map(lambda m: lambda p: griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p), list(zip(mag, init_phase))[1])))
 
 # Batch considered
 def get_magnitude(stft_matrixes):
@@ -77,7 +78,7 @@ def griffin_lim(mag, len_frame, len_hop, num_iters, phase_angle=None, length=Non
 def _pad_wav(wav, sr, duration):
     assert(wav.ndim <= 2)
 
-    n_samples = sr * duration
+    n_samples = int(sr * duration)
     pad_len = np.maximum(0, n_samples - wav.shape[-1])
     if wav.ndim == 1:
         pad_width = (0, pad_len)
@@ -90,7 +91,7 @@ def _pad_wav(wav, sr, duration):
 def _sample_range(wav, sr, duration):
     assert(wav.ndim <= 2)
 
-    target_len = sr * duration
+    target_len = int(sr * duration)
     wav_len = wav.shape[-1]
     start = np.random.choice(range(np.maximum(1, wav_len - target_len)), 1)[0]
     end = start + target_len
