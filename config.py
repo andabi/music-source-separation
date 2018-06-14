@@ -6,16 +6,18 @@ https://www.github.com/andabi
 '''
 
 import tensorflow as tf
-
+from utils import closest_power_of_two
 
 # TODO tf arg
 # Model
 class ModelConfig:
-    SR = 16000
-    L_FRAME = 1024
-    L_HOP = L_FRAME / 4
+    SR = 16000                # Sample Rate
+    L_FRAME = 1024            # default 1024
+    L_HOP = closest_power_of_two(L_FRAME / 4)
     SEQ_LEN = 4
-
+    # For Melspectogram
+    N_MELS = 512
+    F_MIN = 0.0
 
 # Train
 class TrainConfig:
@@ -27,8 +29,8 @@ class TrainConfig:
     FINAL_STEP = 100000
     CKPT_STEP = 500
     NUM_WAVFILE = 1
-    SECONDS = 30
-    RE_TRAIN = False
+    SECONDS = 8.192 # To get 512,512 in melspecto
+    RE_TRAIN = True
     session_conf = tf.ConfigProto(
         device_count={'CPU': 1, 'GPU': 1},
         gpu_options=tf.GPUOptions(
