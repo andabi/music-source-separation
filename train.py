@@ -14,7 +14,7 @@ from data import Data
 from preprocess import to_spectrogram, get_magnitude
 from utils import Diff
 from config import TrainConfig
-
+import numpy as np
 import matplotlib as plt
 import librosa.display
 
@@ -24,12 +24,17 @@ def train():
     model = Model()
 
     # Loss, Optimizer
+    num_epoch = tf.Variable(0, dtype=tf.int32, trainable=False, name='num_epoch')
     global_step = tf.Variable(0, dtype=tf.int32, trainable=False, name='global_step')
     loss_fn = model.loss()
     optimizer = tf.train.AdamOptimizer(learning_rate=TrainConfig.LR).minimize(loss_fn, global_step=global_step)
 
     # Summaries
     summary_op = summaries(model, loss_fn)
+    # Load data
+    data = Data(TrainConfig.DATA_PATH)
+    data.load_data()
+    total_batch = data.total_batches()
 
     with tf.Session(config=TrainConfig.session_conf) as sess:
 
@@ -39,36 +44,42 @@ def train():
 
         writer = tf.summary.FileWriter(TrainConfig.GRAPH_PATH, sess.graph)
 
-        # Input source
-        data = Data(TrainConfig.DATA_PATH)
+        step = 0
+        epoch_loss = []
 
         loss = Diff()
-        for step in range(global_step.eval(), TrainConfig.FINAL_STEP): # changed xrange to range for py3
-            mixed_wav, src1_wav, src2_wav, _ = data.next_wavs(TrainConfig.SECONDS, TrainConfig.NUM_WAVFILE)
+        for epoch in range(num_epoch.eval(), TrainConfig.FINAL_EPOCH): # changed xrange to range for py3
 
-            mixed_spec = to_spectrogram(mixed_wav)
-            mixed_mag = get_magnitude(mixed_spec)
 
-            src1_spec, src2_spec = to_spectrogram(src1_wav), to_spectrogram(src2_wav)
-            src1_mag, src2_mag = get_magnitude(src1_spec), get_magnitude(src2_spec)
+            intermediate_loss = []
 
-            src1_batch, _ = model.spec_to_batch(src1_mag)
-            src2_batch, _ = model.spec_to_batch(src2_mag)
-            mixed_batch, _ = model.spec_to_batch(mixed_mag)
+            for i in range(0, total_batch):
+                mixed_wav, src1_wav, src2_wav, _ = data.next_batch(TrainConfig.SECONDS)   #get batch
 
-            l, _, summary = sess.run([loss_fn, optimizer, summary_op],
+                mixed_spec = to_spectrogram(mixed_wav)   #stft
+                mixed_mag = get_magnitude(mixed_spec)    #abs, mag
+
+                src1_spec, src2_spec = to_spectrogram(src1_wav), to_spectrogram(src2_wav)
+                src1_mag, src2_mag = get_magnitude(src1_spec), get_magnitude(src2_spec)
+
+                src1_batch, _ = model.spec_to_batch(src1_mag)
+                src2_batch, _ = model.spec_to_batch(src2_mag)
+                mixed_batch, _ = model.spec_to_batch(mixed_mag)
+
+                l, _, summary = sess.run([loss_fn, optimizer, summary_op],
                                      feed_dict={model.x_mixed: mixed_batch, model.y_src1: src1_batch,
                                                 model.y_src2: src2_batch})
-
-            loss.update(l)
-            print('step-{}\td_loss={:2.2f}\tloss={}'.format(step, loss.diff * 100, loss.value))
-
-            writer.add_summary(summary, global_step=step)
-
+                loss.update(l)
+                intermediate_loss.append(l)
+                step += 1
+                writer.add_summary(summary, global_step = step)
+            
+            print('epoch-{}\tloss={}'.format(epoch, np.mean(intermediate_loss)))
+            epoch_loss.append(np.mean(intermediate_loss))
             # Save state
-            if step % TrainConfig.CKPT_STEP == 0:
-                tf.train.Saver().save(sess, TrainConfig.CKPT_PATH + '/checkpoint', global_step=step)
-
+            if epoch % TrainConfig.CKPT_EPOCH == 0:
+                tf.train.Saver().save(sess, TrainConfig.CKPT_PATH + '/checkpoint', global_step = step)
+        draw(epoch_loss)  
         writer.close()
 
 
@@ -92,7 +103,13 @@ def setup_path():
     if not os.path.exists(TrainConfig.CKPT_PATH):
         os.makedirs(TrainConfig.CKPT_PATH)
 
-
+def draw(epoch_loss):
+    plt.plot(range(TrainConfig.FINAL_EPOCH), epoch_loss, linewidth=2.0)
+    plt.xlabel('epoch')
+    plt.ylabel('loss')
+    plt.title('training loss')
+    plt.savefig("training loss.png")
+        
 if __name__ == '__main__':
     setup_path()
     train()
