@@ -34,7 +34,11 @@ def to_wav_from_spec(stft_maxrix, len_hop=ModelConfig.L_HOP):
 # Batch considered
 def to_wav_mag_only(mag, init_phase, len_frame=ModelConfig.L_FRAME, len_hop=ModelConfig.L_HOP, num_iters=50):
     #return np.array(list(map(lambda m_p: griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p)[0], list(zip(mag, init_phase))[1])))
-    return np.array(list(map(lambda m: lambda p: griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p), list(zip(mag, init_phase))[1])))
+    m = list(zip(mag, init_phase))[0][0]
+    p = list(zip(mag, init_phase))[0][1]
+    a = griffin_lim(m, len_frame, len_hop, num_iters=num_iters, phase_angle=p)
+    print('type of out:{} len of out:{} out:{}'.format(type(a),len(a),a))
+    return a.reshape((1, a.shape[0]))
 
 # Batch considered
 def get_magnitude(stft_matrixes):
