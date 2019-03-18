@@ -26,9 +26,9 @@ class TrainConfig:
     GRAPH_PATH = 'graphs/' + CASE + '/train'
     DATA_PATH = 'dataset/train/ikala'
     LR = 0.0001
-    FINAL_STEP = 100000
-    CKPT_STEP = 500
-    NUM_WAVFILE = 1
+    FINAL_STEP = 300
+    CKPT_STEP = 50
+    NUM_WAVFILE = 800 # number of training dataset
     SECONDS = 8.192 # To get 512,512 in melspecto
     RE_TRAIN = True
     session_conf = tf.ConfigProto(
